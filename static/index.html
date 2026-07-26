@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RailConnect // Indirect & Connecting Route Planner</title>
+    <meta name="description" content="Advanced indirect train routing engine with buffer constraints, junction discovery, and day-of-week validation.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="background-glow"></div>
+    
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                        <line x1="4" y1="22" x2="4" y2="15"></line>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>RailConnect <span class="badge-v1">ENGINE v1.0</span></h1>
+                    <p class="subtitle">Indirect & Connecting Railway Route Search</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span>
+                    <span class="status-text">Connection Engine Active</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Search Controls Panel -->
+        <section class="search-panel glass-card">
+            <div class="panel-header">
+                <h2><span class="icon">🔍</span> Journey Query & Constraint Matrix</h2>
+                <p>Configure travel endpoints, day of departure, and transfer buffer parameters</p>
+            </div>
+            
+            <form id="searchForm" class="search-form">
+                <div class="form-grid">
+                    <!-- Origin -->
+                    <div class="form-group">
+                        <label for="originSelect">Origin Station</label>
+                        <select id="originSelect" class="custom-select" required>
+                            <option value="" disabled selected>Select origin station...</option>
+                        </select>
+                    </div>
+
+                    <!-- Swap Button -->
+                    <div class="swap-container">
+                        <button type="button" id="swapBtn" class="btn-swap" title="Swap Origin and Destination">
+                            ⇄
+                        </button>
+                    </div>
+
+                    <!-- Destination -->
+                    <div class="form-group">
+                        <label for="destSelect">Destination Station</label>
+                        <select id="destSelect" class="custom-select" required>
+                            <option value="" disabled selected>Select destination station...</option>
+                        </select>
+                    </div>
+
+                    <!-- Departure Date -->
+                    <div class="form-group">
+                        <label for="departureDate">Departure Date</label>
+                        <input type="date" id="departureDate" class="custom-input" required>
+                    </div>
+                </div>
+
+                <!-- Buffer Constraints & Sorting Options -->
+                <div class="constraints-bar">
+                    <div class="constraint-item">
+                        <div class="constraint-label">
+                            <span>Min Buffer ($\Delta t_{min}$)</span>
+                            <span id="minBufferVal" class="value-badge">45 Mins</span>
+                        </div>
+                        <input type="range" id="minBufferRange" min="15" max="180" step="15" value="45" class="custom-range">
+                    </div>
+
+                    <div class="constraint-item">
+                        <div class="constraint-label">
+                            <span>Max Layover ($\Delta t_{max}$)</span>
+                            <span id="maxBufferVal" class="value-badge">6.0 Hours</span>
+                        </div>
+                        <input type="range" id="maxBufferRange" min="60" max="1440" step="30" value="360" class="custom-range">
+                    </div>
+
+                    <div class="constraint-item">
+                        <label for="sortBySelect" class="constraint-title">Ranking Priority</label>
+                        <select id="sortBySelect" class="custom-select select-sm">
+                            <option value="duration" selected>⚡ Fastest Total Journey</option>
+                            <option value="layover">⏳ Shortest Transfer Wait</option>
+                            <option value="fare">💎 Lowest Fare</option>
+                            <option value="earliest_arrival">🌅 Earliest Arrival</option>
+                        </select>
+                    </div>
+
+                    <div class="form-action">
+                        <button type="submit" id="searchBtn" class="btn-primary">
+                            <span>Find Connecting Routes</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Main Content Area: Tabs & Views -->
+        <section class="results-section">
+            <div class="tabs-nav glass-card">
+                <button class="tab-btn active" data-tab="routesTab">
+                    <span>🚉 Route Options</span>
+                    <span id="routeCountBadge" class="count-pill">0</span>
+                </button>
+                <button class="tab-btn" data-tab="networkTab">
+                    <span>🌐 Railway Network Canvas</span>
+                </button>
+                <button class="tab-btn" data-tab="blueprintTab">
+                    <span>📐 Algorithm Architecture</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: Route Options List -->
+            <div id="routesTab" class="tab-content active">
+                <div id="summaryStats" class="summary-stats hidden">
+                    <div class="stat-card">
+                        <span class="stat-num" id="statTotal">0</span>
+                        <span class="stat-label">Total Routes</span>
+                    </div>
+                    <div class="stat-card accent-green">
+                        <span class="stat-num" id="statDirect">0</span>
+                        <span class="stat-label">Direct Trains</span>
+                    </div>
+                    <div class="stat-card accent-cyan">
+                        <span class="stat-num" id="statConnecting">0</span>
+                        <span class="stat-label">1-Stop Connections</span>
+                    </div>
+                    <div class="stat-card accent-amber">
+                        <span class="stat-num" id="statJunctions">0</span>
+                        <span class="stat-label">Candidate Junctions</span>
+                    </div>
+                </div>
+
+                <div id="loadingState" class="state-container hidden">
+                    <div class="spinner"></div>
+                    <p class="state-title">Evaluating Junction Intersections & Buffer Constraints...</p>
+                    <p class="state-desc">Running Phase 1 junction discovery & Phase 2 time window validation</p>
+                </div>
+
+                <div id="emptyState" class="state-container">
+                    <div class="state-icon">🚉</div>
+                    <h3>Ready to Plan Journey</h3>
+                    <p>Select origin, destination, and departure date to compute direct and 1-stop connecting trains.</p>
+                </div>
+
+                <div id="routesList" class="routes-list"></div>
+            </div>
+
+            <!-- TAB 2: Network Canvas Map -->
+            <div id="networkTab" class="tab-content">
+                <div class="glass-card canvas-card">
+                    <div class="canvas-header">
+                        <h3>Interactive Station Connection Graph</h3>
+                        <p>Visualizing railway network nodes and key transfer junctions</p>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="networkCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Algorithm Architecture Blueprint -->
+            <div id="blueprintTab" class="tab-content">
+                <div class="blueprint-grid">
+                    <div class="glass-card blueprint-card">
+                        <div class="phase-header">
+                            <span class="phase-num">PHASE 1</span>
+                            <h3>Junction Station Identification</h3>
+                        </div>
+                        <p class="phase-desc">Finds candidate connection hubs $B$ by evaluating station reachability sets:</p>
+                        <div class="code-block">
+                            <pre>Set 1 = { Stations reachable from Origin A }
+Set 2 = { Stations connecting to Destination C }
+Candidate Junctions = Set 1 ∩ Set 2</pre>
+                        </div>
+                    </div>
+
+                    <div class="glass-card blueprint-card">
+                        <div class="phase-header">
+                            <span class="phase-num">PHASE 2</span>
+                            <h3>Time Constraint & Day-of-Week Filter</h3>
+                        </div>
+                        <p class="phase-desc">Validates operating days across midnight crossovers and enforces transfer buffer bounds:</p>
+                        <div class="code-block">
+                            <pre>Δtmin ≤ Departure(Train 2) - Arrival(Train 1) ≤ Δtmax
+
+✓ Validates train operating days (runs_mon ... runs_sun)
+✓ Accounts for multi-day journey offsets (day_number)</pre>
+                        </div>
+                    </div>
+
+                    <div class="glass-card blueprint-card">
+                        <div class="phase-header">
+                            <span class="phase-num">PHASE 3</span>
+                            <h3>Multi-Criteria Route Ranking</h3>
+                        </div>
+                        <p class="phase-desc">Sorts direct and 1-stop options based on passenger preferences:</p>
+                        <ul class="blueprint-list">
+                            <li>⚡ <strong>Total Journey Duration</strong>: Departure at A → Arrival at C</li>
+                            <li>⏳ <strong>Shortest Layover</strong>: Minimizes platform wait time</li>
+                            <li>💎 <strong>Lowest Fare</strong>: Calculated by distance and service class</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p>RailConnect Indirect Train / Connecting Route Planner &copy; 2026</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
