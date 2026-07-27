@@ -97,13 +97,6 @@ This project is licensed under the MIT License.
 
 ---
 
-## 👨‍💻 Author
-
-**Mahantesh Ingale**
-
-GitHub: https://github.com/Mahantesh2006
-
----
 
 <p align="center">
 ⭐ If you like this project, don't forget to star the repository!
