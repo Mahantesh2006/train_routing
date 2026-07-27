@@ -17,6 +17,59 @@ The **Train Routing System** is an intelligent route-planning application that h
 
 Instead of showing only direct trains, the system identifies possible transfer stations, suggests connecting trains, and calculates waiting times between trains to provide a practical travel plan.
 
+**RailConnect** implements a 3-Phase Connection Engine that discovers optimal transfer junctions $B$ and enforces layover buffer constraints:
+
+$$\Delta t_{min} \le \text{Departure}(Train_2) - \text{Arrival}(Train_1) \le \Delta t_{max}$$
+
+---
+
+## 📸 Project Preview
+
+![RailConnect project preview](static/railconnect-preview.png)
+
+This screenshot is ready to be used in your GitHub repository README or profile README.
+
+---
+
+## 📐 System Architecture
+
+```
+ [ Client / Frontend (HTML5 + Glassmorphism CSS + Canvas Map) ]
+                            │
+                            ▼  (POST /api/search: Origin, Destination, Date, Buffer Sliders)
+ [ FastAPI REST API Layer (backend/app.py) ]
+                            │
+                            ▼
+ [ 3-Phase Connection Engine (backend/routing_engine.py) ] ◄─── [ SQLite Database (railway.db) ]
+                            │
+                            ▼  (Validates Operating Days, Midnight Crossovers & Layover Windows)
+ [ Multi-Criteria Ranking (Fastest, Shortest Layover, Lowest Fare) ]
+                            │
+                            ▼
+ [ JSON Route Timeline Response ]
+```
+
+---
+
+## ⚡ Core Search Logic (3-Phase Routing Engine)
+
+### Phase 1: Identify Junction Stations
+Query all candidate transfer stations $B$ forming the set intersection:
+$$\text{Candidate Junctions } B = \{ \text{Stations reachable from Origin } A \} \cap \{ \text{Stations connecting to Destination } C \}$$
+
+### Phase 2: Apply Time & Day-of-Week Constraints
+For each candidate junction $B$ and pairs $(Train_1, Train_2)$:
+- **Operating Day Matching**: Check train run bitmasks (`runs_mon` ... `runs_sun`) accounting for multi-day offsets (`day_number`).
+- **Buffer Window Filtering**: Ensure wait time at Junction $B$ satisfies:
+  $$\Delta t_{min} \le \text{Wait Time} \le \Delta t_{max}$$
+
+### Phase 3: Rank & Sort Options
+Sort generated routes by user preference:
+- ⚡ **Total Journey Duration** (Origin $A \rightarrow$ Destination $C$)
+- ⏳ **Shortest Layover Duration**
+- 💎 **Lowest Fare**
+- 🌅 **Earliest Final Arrival**
+
 ---
 
 ## ✨ Features
