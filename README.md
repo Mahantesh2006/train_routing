@@ -82,6 +82,23 @@ pytest test_routing.py
 
 ---
 
+## 🚀 Deploy on Render
+
+[![Deploy to Render](https://render.com/images/deploy-to-render.svg)](https://render.com/deploy?repo=https://github.com/Mahantesh2006/train_routing)
+
+### Render Configuration Parameters:
+
+1. **Sign in** to [render.com](https://render.com/) with GitHub.
+2. Click **New +** $\rightarrow$ **Web Service** $\rightarrow$ Connect `Mahantesh2006/train_routing`.
+3. Set the parameters:
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt && python backend/seed_data.py`
+   - **Start Command**: `gunicorn -w 2 -k uvicorn.workers.UvicornWorker backend.app:app`
+4. Click **Create Web Service**.
+
+
+---
+
 ## 🤝 Contributing
 
 Contributions are welcome. Feel free to fork the repository and submit a pull request.

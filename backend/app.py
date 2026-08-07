@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 
 from database import init_db, get_db_connection
+from seed_data import seed_railway_database
 from routing_engine import search_routes
 
 
@@ -22,6 +23,17 @@ app = FastAPI(
 @app.on_event("startup")
 def startup_event():
     init_db()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM stations")
+        count = cursor.fetchone()[0]
+        conn.close()
+        if count == 0:
+            seed_railway_database()
+    except Exception as e:
+        print(f"Startup DB check notice: {e}")
+
 
 class RouteSearchRequest(BaseModel):
     origin: str = Field(..., example="NDLS")
