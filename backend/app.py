@@ -77,6 +77,60 @@ def get_network_graph():
 
     return {"nodes": stations, "edges": edges}
 
+# Real-Time Telemetry State
+state = {
+    "emergency_override": False,
+    "junctions": {
+        "J-101": {"name": "Kalaburagi Junction", "status": "OPEN", "code": "KLBG"},
+        "J-102": {"name": "Yesvantpur Junction", "status": "CONFLICT", "code": "YPR"},
+        "J-103": {"name": "SBC Interchange", "status": "DIVERGING", "code": "SBC"},
+        "J-104": {"name": "Mysuru Line", "status": "OPEN", "code": "MYS"},
+        "J-105": {"name": "Vijayapura Hub", "status": "CLOSED", "code": "BJP"},
+        "J-106": {"name": "Belagavi Pass", "status": "OPEN", "code": "BGM"}
+    },
+    "conflicts": [
+        {
+            "id": "CONF-902",
+            "junction": "J-102",
+            "train1": "#TR-804",
+            "train1_name": "Karnataka SF",
+            "train2": "#TR-412",
+            "train2_name": "SBC Rajdhani",
+            "description": "Signal Overlap at Junction J-102 (Track Segment 2B). Both units scheduled to enter block simultaneously at 118 km/h.",
+            "status": "ACTIVE",
+            "severity": "CRITICAL"
+        }
+    ]
+}
+
+@app.get("/api/telemetry")
+def get_telemetry():
+    return state
+
+@app.post("/api/signal/action")
+def signal_action(action: str = Query(...), train_id: Optional[str] = Query(None)):
+    if action == "reroute":
+        state["conflicts"] = [c for c in state["conflicts"] if c["id"] != "CONF-902"]
+        state["junctions"]["J-102"]["status"] = "DIVERGED"
+        return {"status": "SUCCESS", "message": f"Train {train_id or '#TR-412'} successfully rerouted via Track 2B bypass."}
+    elif action == "hold":
+        state["conflicts"] = [c for c in state["conflicts"] if c["id"] != "CONF-902"]
+        state["junctions"]["J-102"]["status"] = "HOLD"
+        return {"status": "SUCCESS", "message": f"Signal S-402 HELD. Train {train_id or '#TR-804'} holding position at approach marker."}
+    elif action == "emergency":
+        state["emergency_override"] = not state["emergency_override"]
+        return {"status": "SUCCESS", "emergency_override": state["emergency_override"]}
+    raise HTTPException(status_code=400, detail="Invalid action")
+
+@app.post("/api/junction/toggle")
+def toggle_junction(junction_id: str = Query(...)):
+    if junction_id in state["junctions"]:
+        curr = state["junctions"][junction_id]["status"]
+        next_status = "CLOSED" if curr in ["OPEN", "DIVERGING"] else "OPEN"
+        state["junctions"][junction_id]["status"] = next_status
+        return {"status": "SUCCESS", "junction_id": junction_id, "new_status": next_status}
+    raise HTTPException(status_code=404, detail="Junction not found")
+
 # Mount static folder for web UI
 static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
 if os.path.exists(static_dir):
@@ -88,3 +142,4 @@ def read_root():
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return {"message": "Indirect Train / Connecting Route Planner API is running."}
+

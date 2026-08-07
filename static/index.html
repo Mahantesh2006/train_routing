@@ -3,237 +3,1028 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RailConnect // Indirect & Connecting Route Planner</title>
-    <meta name="description" content="Advanced indirect train routing engine with buffer constraints, junction discovery, and day-of-week validation.">
+    <title>RailConnect // Real-Time Signal & Train Control Dashboard</title>
+    <meta name="description" content="Obsidian Dark-Mode Real-Time Railway Signal Control Room Dashboard with live telemetry, track schematic canvas, interactive junctions, and collision resolvers.">
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS v4 Browser Build -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <!-- React 18 & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel Standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body>
-    <div class="background-glow"></div>
-    
-    <!-- Top Navigation Header -->
-    <header class="app-header">
-        <div class="header-container">
-            <div class="brand">
-                <div class="brand-logo">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                        <line x1="4" y1="22" x2="4" y2="15"></line>
-                    </svg>
-                </div>
-                <div class="brand-text">
-                    <h1>RailConnect <span class="badge-v1">ENGINE v1.0</span></h1>
-                    <p class="subtitle">Indirect & Connecting Railway Route Search</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <div class="status-indicator">
-                    <span class="pulse-dot"></span>
-                    <span class="status-text">Connection Engine Active</span>
-                </div>
-            </div>
-        </div>
-    </header>
+<body class="bg-[#090D16] text-slate-100 font-sans antialiased min-h-screen overflow-x-hidden selection:bg-cyan-500 selection:text-black">
+    <div id="root"></div>
 
-    <main class="main-container">
-        <!-- Search Controls Panel -->
-        <section class="search-panel glass-card">
-            <div class="panel-header">
-                <h2><span class="icon">🔍</span> Journey Query & Constraint Matrix</h2>
-                <p>Configure travel endpoints, day of departure, and transfer buffer parameters</p>
-            </div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // Helper to render Lucide SVG icon safely
+        const LucideIcon = ({ name, className = "w-5 h-5", ...props }) => {
+            const iconRef = useRef(null);
+
+            useEffect(() => {
+                if (iconRef.current && window.lucide && window.lucide.icons) {
+                    const iconPascal = name.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+                    const iconFn = window.lucide.icons[iconPascal] || window.lucide.icons[name];
+                    if (iconFn) {
+                        const svg = iconFn.toSvg({ class: className, ...props });
+                        iconRef.current.innerHTML = svg;
+                    }
+                }
+            }, [name, className]);
+
+            return <span ref={iconRef} className="inline-flex items-center justify-center" />;
+        };
+
+        // Train Telemetry Initial Data
+        const INITIAL_TRAINS = [
+            { id: "#TR-804", name: "Karnataka SF", origin: "NDLS", next: "YPR", speed: 118, targetSpeed: 120, status: "CONFLICT", delay: 14, signal: "S-102", track: "Track 2B", type: "Superfast" },
+            { id: "#TR-412", name: "SBC Rajdhani", origin: "NDLS", next: "YPR", speed: 128, targetSpeed: 130, status: "CONFLICT", delay: 14, signal: "S-104", track: "Track 2B", type: "Rajdhani" },
+            { id: "#TR-909", name: "Belagavi Vande Bharat", origin: "SBC", next: "BGM", speed: 130, targetSpeed: 130, status: "ON_TIME", delay: 0, signal: "S-201", track: "Main Line 1", type: "Vande Bharat" },
+            { id: "#TR-502", name: "Gol Gumbaz Express", origin: "MYS", next: "KLBG", speed: 95, targetSpeed: 100, status: "DELAYED", delay: 4, signal: "S-305", track: "Loop Line 3", type: "Express" },
+            { id: "#TR-301", name: "Rani Chennamma Exp", origin: "SBC", next: "BGM", speed: 102, targetSpeed: 110, status: "ON_TIME", delay: 0, signal: "S-401", track: "Main Line 2", type: "Express" },
+            { id: "#TR-108", name: "Basava Express", origin: "BJP", next: "YPR", speed: 88, targetSpeed: 90, status: "ON_TIME", delay: 0, signal: "S-106", track: "Branch Line A", type: "Express" },
+            { id: "#TR-253", name: "SMVT Howrah SF", origin: "SMVB", next: "SC", speed: 110, targetSpeed: 115, status: "ON_TIME", delay: 0, signal: "S-502", track: "East Corridor", type: "Superfast" },
+            { id: "#TR-607", name: "Mysuru Vande Bharat", origin: "SBC", next: "MYS", speed: 125, targetSpeed: 130, status: "ON_TIME", delay: 0, signal: "S-601", track: "South Line", type: "Vande Bharat" }
+        ];
+
+        // Station Node Coordinates on Network Canvas (normalized x: 50..950, y: 50..450)
+        const STATIONS = {
+            NDLS: { name: "New Delhi", code: "NDLS", x: 250, y: 70, type: "major" },
+            VGLJ: { name: "Jhansi", code: "VGLJ", x: 340, y: 140, type: "junction" },
+            BPL: { name: "Bhopal", code: "BPL", x: 400, y: 210, type: "junction" },
+            NGP: { name: "Nagpur", code: "NGP", x: 480, y: 270, type: "junction" },
+            SC: { name: "Secunderabad", code: "SC", x: 580, y: 310, type: "junction" },
+            KLBG: { name: "Kalaburagi", code: "KLBG", x: 620, y: 380, type: "karnataka" },
+            BJP: { name: "Vijayapura", code: "BJP", x: 500, y: 390, type: "karnataka" },
+            BGM: { name: "Belagavi", code: "BGM", x: 420, y: 440, type: "karnataka" },
+            YPR: { name: "Yesvantpur", code: "YPR", x: 740, y: 400, type: "karnataka" },
+            SBC: { name: "KSR Bengaluru", code: "SBC", x: 790, y: 410, type: "major" },
+            SMVB: { name: "SMVT Bengaluru", code: "SMVB", x: 840, y: 390, type: "karnataka" },
+            MYS: { name: "Mysuru", code: "MYS", x: 710, y: 470, type: "karnataka" },
+            MMCT: { name: "Mumbai Central", code: "MMCT", x: 120, y: 250, type: "major" },
+            BRC: { name: "Vadodara", code: "BRC", x: 200, y: 200, type: "junction" },
+            HWH: { name: "Howrah", code: "HWH", x: 880, y: 150, type: "major" },
+            MAS: { name: "Chennai Central", code: "MAS", x: 880, y: 450, type: "major" }
+        };
+
+        const TRACK_EDGES = [
+            ["NDLS", "VGLJ"], ["VGLJ", "BPL"], ["BPL", "NGP"], ["NGP", "SC"],
+            ["SC", "KLBG"], ["KLBG", "YPR"], ["YPR", "SBC"], ["SBC", "MYS"],
+            ["SBC", "SMVB"], ["KLBG", "BJP"], ["BJP", "BGM"], ["BGM", "YPR"],
+            ["MMCT", "BRC"], ["BRC", "BPL"], ["SC", "HWH"], ["SBC", "MAS"]
+        ];
+
+        function App() {
+            // Main View Mode: 'control' (Signal Control Dashboard) or 'planner' (Connecting Route Search)
+            const [viewMode, setViewMode] = useState('control');
+            const [emergencyOverride, setEmergencyOverride] = useState(false);
+            const [simSpeed, setSimSpeed] = useState(1); // 1x, 2x, 5x, 0 (Pause)
+            const [isPaused, setIsPaused] = useState(false);
+            const [timeStr, setTimeStr] = useState("");
             
-            <form id="searchForm" class="search-form">
-                <div class="form-grid">
-                    <!-- Origin -->
-                    <div class="form-group">
-                        <label for="originSelect">Origin Station</label>
-                        <select id="originSelect" class="custom-select" required>
-                            <option value="" disabled selected>Select origin station...</option>
-                        </select>
-                    </div>
+            // Telemetry State
+            const [trains, setTrains] = useState(INITIAL_TRAINS);
+            const [searchQuery, setSearchQuery] = useState("");
+            const [statusFilter, setStatusFilter] = useState("ALL");
 
-                    <!-- Swap Button -->
-                    <div class="swap-container">
-                        <button type="button" id="swapBtn" class="btn-swap" title="Swap Origin and Destination">
-                            ⇄
-                        </button>
-                    </div>
+            // Junction Switch States
+            const [junctions, setJunctions] = useState({
+                "J-101": { id: "J-101", code: "KLBG", name: "Kalaburagi Junction", status: "OPEN" },
+                "J-102": { id: "J-102", code: "YPR", name: "Yesvantpur Junction", status: "CONFLICT" },
+                "J-103": { id: "J-103", code: "SBC", name: "SBC Interchange", status: "DIVERGING" },
+                "J-104": { id: "J-104", code: "MYS", name: "Mysuru Terminal Switch", status: "OPEN" },
+                "J-105": { id: "J-105", code: "BJP", name: "Vijayapura Loop", status: "CLOSED" },
+                "J-106": { id: "J-106", code: "BGM", name: "Belagavi Pass", status: "OPEN" }
+            });
 
-                    <!-- Destination -->
-                    <div class="form-group">
-                        <label for="destSelect">Destination Station</label>
-                        <select id="destSelect" class="custom-select" required>
-                            <option value="" disabled selected>Select destination station...</option>
-                        </select>
-                    </div>
+            // Active Conflict State
+            const [activeConflict, setActiveConflict] = useState({
+                id: "CONF-902",
+                junction: "J-102",
+                train1: "#TR-804",
+                train2: "#TR-412",
+                title: "CRITICAL SIGNAL OVERLAP",
+                description: "Trains #TR-804 (Karnataka SF) & #TR-412 (SBC Rajdhani) approaching Junction J-102 (Track 2B) simultaneously.",
+                status: "ACTIVE"
+            });
 
-                    <!-- Departure Date -->
-                    <div class="form-group">
-                        <label for="departureDate">Departure Date</label>
-                        <input type="date" id="departureDate" class="custom-input" required>
-                    </div>
-                </div>
+            // Timetable Planner Form State (for Route Search view)
+            const [plannerOrigin, setPlannerOrigin] = useState("NDLS");
+            const [plannerDest, setPlannerDest] = useState("SBC");
+            const [plannerDate, setPlannerDate] = useState("2026-07-27");
+            const [minBuffer, setMinBuffer] = useState(45);
+            const [maxBuffer, setMaxBuffer] = useState(360);
+            const [sortBy, setSortBy] = useState("duration");
+            const [routeResults, setRouteResults] = useState(null);
+            const [loadingRoutes, setLoadingRoutes] = useState(false);
 
-                <!-- Buffer Constraints & Sorting Options -->
-                <div class="constraints-bar">
-                    <div class="constraint-item">
-                        <div class="constraint-label">
-                            <span>Min Buffer ($\Delta t_{min}$)</span>
-                            <span id="minBufferVal" class="value-badge">45 Mins</span>
+            // Clock update
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    const now = new Date();
+                    const h = String(now.getHours()).padStart(2, '0');
+                    const m = String(now.getMinutes()).padStart(2, '0');
+                    const s = String(now.getSeconds()).padStart(2, '0');
+                    setTimeStr(`${h}:${m}:${s} UTC+05:30`);
+                }, 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            // Emergency Override Toggle Action
+            const handleEmergencyToggle = () => {
+                const nextState = !emergencyOverride;
+                setEmergencyOverride(nextState);
+                if (nextState) {
+                    // Put all train speeds to 0 and all signals to HOLD
+                    setTrains(prev => prev.map(t => ({ ...t, speed: 0, status: "HOLD" })));
+                    setJunctions(prev => {
+                        const updated = {};
+                        Object.keys(prev).forEach(k => {
+                            updated[k] = { ...prev[k], status: "HOLD" };
+                        });
+                        return updated;
+                    });
+                } else {
+                    setTrains(INITIAL_TRAINS);
+                    setJunctions({
+                        "J-101": { id: "J-101", code: "KLBG", name: "Kalaburagi Junction", status: "OPEN" },
+                        "J-102": { id: "J-102", code: "YPR", name: "Yesvantpur Junction", status: "OPEN" },
+                        "J-103": { id: "J-103", code: "SBC", name: "SBC Interchange", status: "DIVERGING" },
+                        "J-104": { id: "J-104", code: "MYS", name: "Mysuru Terminal Switch", status: "OPEN" },
+                        "J-105": { id: "J-105", code: "BJP", name: "Vijayapura Loop", status: "CLOSED" },
+                        "J-106": { id: "J-106", code: "BGM", name: "Belagavi Pass", status: "OPEN" }
+                    });
+                }
+            };
+
+            // Reroute Action
+            const handleReroute = () => {
+                setActiveConflict(null);
+                setJunctions(prev => ({
+                    ...prev,
+                    "J-102": { ...prev["J-102"], status: "DIVERGED" }
+                }));
+                setTrains(prev => prev.map(t => {
+                    if (t.id === "#TR-412") {
+                        return { ...t, status: "ON_TIME", delay: 2, track: "Track 2B Bypass", speed: 110 };
+                    }
+                    if (t.id === "#TR-804") {
+                        return { ...t, status: "ON_TIME", delay: 0, speed: 120 };
+                    }
+                    return t;
+                }));
+            };
+
+            // Hold Signal Action
+            const handleHoldSignal = () => {
+                setActiveConflict(null);
+                setJunctions(prev => ({
+                    ...prev,
+                    "J-102": { ...prev["J-102"], status: "HOLD" }
+                }));
+                setTrains(prev => prev.map(t => {
+                    if (t.id === "#TR-804") {
+                        return { ...t, status: "HOLD", speed: 0, delay: 5, track: "Approach Signal S-402" };
+                    }
+                    if (t.id === "#TR-412") {
+                        return { ...t, status: "ON_TIME", delay: 0, speed: 128 };
+                    }
+                    return t;
+                }));
+            };
+
+            // Junction Toggle
+            const toggleJunctionStatus = (jId) => {
+                setJunctions(prev => {
+                    const curr = prev[jId].status;
+                    const next = curr === "OPEN" ? "CLOSED" : curr === "CLOSED" ? "DIVERGING" : "OPEN";
+                    return {
+                        ...prev,
+                        [jId]: { ...prev[jId], status: next }
+                    };
+                });
+            };
+
+            // Filter Trains
+            const filteredTrains = useMemo(() => {
+                return trains.filter(t => {
+                    const matchesQuery = t.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                         t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                         t.next.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesStatus = statusFilter === "ALL" ? true : t.status === statusFilter;
+                    return matchesQuery && matchesStatus;
+                });
+            }, [trains, searchQuery, statusFilter]);
+
+            // Route Search submit
+            const handleRouteSearch = async (e) => {
+                e.preventDefault();
+                setLoadingRoutes(true);
+                try {
+                    const res = await fetch('/api/search', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            origin: plannerOrigin,
+                            destination: plannerDest,
+                            departure_date: plannerDate,
+                            min_buffer_mins: minBuffer,
+                            max_buffer_mins: maxBuffer,
+                            sort_by: sortBy
+                        })
+                    });
+                    const data = await res.json();
+                    setRouteResults(data);
+                } catch (err) {
+                    alert('Failed to search routes: ' + err.message);
+                } finally {
+                    setLoadingRoutes(false);
+                }
+            };
+
+            return (
+                <div className={`min-h-screen flex flex-col ${emergencyOverride ? 'emergency-flash bg-slate-950' : 'bg-[#090D16]'}`}>
+                    
+                    {/* EMERGENCY OVERRIDE BANNER */}
+                    {emergencyOverride && (
+                        <div className="bg-rose-600/90 text-white font-mono font-bold text-center py-2 text-sm tracking-wider uppercase flex items-center justify-center gap-3 animate-pulse border-b border-rose-500 shadow-lg shadow-rose-600/50 z-50">
+                            <LucideIcon name="alert-triangle" className="w-5 h-5" />
+                            <span>EMERGENCY OVERRIDE ENGAGED // ALL TRAIN MOVEMENTS LOCKED // SIGNALS AT HOLD</span>
+                            <LucideIcon name="alert-triangle" className="w-5 h-5" />
                         </div>
-                        <input type="range" id="minBufferRange" min="15" max="180" step="15" value="45" class="custom-range">
-                    </div>
+                    )}
 
-                    <div class="constraint-item">
-                        <div class="constraint-label">
-                            <span>Max Layover ($\Delta t_{max}$)</span>
-                            <span id="maxBufferVal" class="value-badge">6.0 Hours</span>
+                    {/* HEADER BAR */}
+                    <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 px-4 lg:px-8 py-3">
+                        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+                            
+                            {/* Brand & Radar */}
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-[2px] shadow-lg shadow-cyan-500/30 flex items-center justify-center">
+                                    <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center text-cyan-400">
+                                        <LucideIcon name="radio" className="w-5 h-5 animate-radar" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 className="font-heading font-extrabold text-lg tracking-tight flex items-center gap-2 text-slate-100">
+                                        RAILCONNECT <span className="text-xs font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">CONTROL ROOM v2.0</span>
+                                    </h1>
+                                    <p className="text-xs text-slate-400">Real-Time Signal Routing & Telemetry Control Center</p>
+                                </div>
+                            </div>
+
+                            {/* Center System Status Badges */}
+                            <div className="flex items-center gap-3 flex-wrap">
+                                {/* Health Pill */}
+                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-md ${
+                                    emergencyOverride 
+                                        ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 glow-coral' 
+                                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 glow-emerald'
+                                }`}>
+                                    <span className={`w-2 h-2 rounded-full ${emergencyOverride ? 'bg-rose-500 animate-ping' : 'bg-emerald-400 animate-pulse'}`}></span>
+                                    <span>{emergencyOverride ? 'EMERGENCY OVERRIDE' : 'ALL SYSTEMS OPERATIONAL'}</span>
+                                </div>
+
+                                {/* Active Trains Count */}
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono bg-slate-900/80 border border-slate-800 text-slate-300">
+                                    <LucideIcon name="train" className="w-3.5 h-3.5 text-cyan-400" />
+                                    <span>ACTIVE UNITS: <strong className="text-cyan-400">{trains.length}</strong> / 18</span>
+                                </div>
+
+                                {/* Live Clock */}
+                                <div className="flex items-center gap-2 px-3 me-2 py-1.5 rounded-full text-xs font-mono bg-slate-900/80 border border-slate-800 text-slate-300">
+                                    <LucideIcon name="clock" className="w-3.5 h-3.5 text-slate-400" />
+                                    <span className="text-slate-200">{timeStr || '12:00:00 UTC+05:30'}</span>
+                                </div>
+                            </div>
+
+                            {/* View Switcher & Emergency Button */}
+                            <div className="flex items-center gap-3">
+                                {/* Mode Switch Buttons */}
+                                <div className="bg-slate-900/90 border border-slate-800 p-1 rounded-xl flex gap-1">
+                                    <button 
+                                        onClick={() => setViewMode('control')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                                            viewMode === 'control' 
+                                                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm' 
+                                                : 'text-slate-400 hover:text-slate-200'
+                                        }`}>
+                                        <LucideIcon name="activity" className="w-3.5 h-3.5" />
+                                        <span>Signal Control</span>
+                                    </button>
+
+                                    <button 
+                                        onClick={() => setViewMode('planner')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                                            viewMode === 'planner' 
+                                                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm' 
+                                                : 'text-slate-400 hover:text-slate-200'
+                                        }`}>
+                                        <LucideIcon name="compass" className="w-3.5 h-3.5" />
+                                        <span>Route Planner</span>
+                                    </button>
+                                </div>
+
+                                {/* Emergency Override Button */}
+                                <button 
+                                    onClick={handleEmergencyToggle}
+                                    className={`px-3 py-2 rounded-xl text-xs font-bold font-mono tracking-wider flex items-center gap-2 transition-all ${
+                                        emergencyOverride
+                                            ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/50 border border-rose-400 animate-bounce'
+                                            : 'bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 hover:border-rose-500/60'
+                                    }`}>
+                                    <LucideIcon name="power" className="w-4 h-4" />
+                                    <span>{emergencyOverride ? 'DISENGAGE OVERRIDE' : 'EMERGENCY OVERRIDE'}</span>
+                                </button>
+                            </div>
+
                         </div>
-                        <input type="range" id="maxBufferRange" min="60" max="1440" step="30" value="360" class="custom-range">
-                    </div>
+                    </header>
 
-                    <div class="constraint-item">
-                        <label for="sortBySelect" class="constraint-title">Ranking Priority</label>
-                        <select id="sortBySelect" class="custom-select select-sm">
-                            <option value="duration" selected>⚡ Fastest Total Journey</option>
-                            <option value="layover">⏳ Shortest Transfer Wait</option>
-                            <option value="fare">💎 Lowest Fare</option>
-                            <option value="earliest_arrival">🌅 Earliest Arrival</option>
-                        </select>
-                    </div>
+                    {/* MAIN CONTENT WORKSPACE */}
+                    <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 flex flex-col gap-6">
 
-                    <div class="form-action">
-                        <button type="submit" id="searchBtn" class="btn-primary">
-                            <span>Find Connecting Routes</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                                <polyline points="12 5 19 12 12 19"></polyline>
-                            </svg>
-                        </button>
-                    </div>
+                        {/* VIEW MODE 1: REAL-TIME SIGNAL CONTROL DASHBOARD */}
+                        {viewMode === 'control' && (
+                            <>
+                                {/* TOP WORKSPACE GRID (Left 65% Network Schematic, Right 35% Live Telemetry) */}
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                                    {/* LEFT 65% PANEL: RAIL NETWORK SCHEMATIC */}
+                                    <div className="lg:col-span-8 flex flex-col gap-4">
+                                        <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-5 shadow-xl shadow-black/40 flex flex-col gap-4">
+                                            
+                                            {/* Panel Header */}
+                                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                                                <div>
+                                                    <h2 className="font-heading font-bold text-base text-slate-100 flex items-center gap-2">
+                                                        <LucideIcon name="git-commit" className="w-5 h-5 text-cyan-400" />
+                                                        <span>Interactive Rail Network Track Schematic</span>
+                                                    </h2>
+                                                    <p className="text-xs text-slate-400">Node-based signal blocks, real-time train positions, and junction switch indicators</p>
+                                                </div>
+
+                                                {/* Map Controls */}
+                                                <div className="flex items-center gap-2 bg-slate-950/80 px-2 py-1 rounded-lg border border-slate-800 text-xs">
+                                                    <button 
+                                                        onClick={() => setIsPaused(!isPaused)} 
+                                                        className={`p-1 rounded hover:bg-slate-800 ${isPaused ? 'text-amber-400' : 'text-emerald-400'}`}
+                                                        title={isPaused ? "Resume Simulation" : "Pause Simulation"}>
+                                                        <LucideIcon name={isPaused ? "play" : "pause"} className="w-4 h-4" />
+                                                    </button>
+
+                                                    <span className="text-slate-600">|</span>
+
+                                                    {[1, 2, 5].map(spd => (
+                                                        <button 
+                                                            key={spd}
+                                                            onClick={() => { setSimSpeed(spd); setIsPaused(false); }}
+                                                            className={`px-2 py-0.5 rounded font-mono text-[11px] ${simSpeed === spd && !isPaused ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-400 hover:text-slate-200'}`}>
+                                                            {spd}x
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* SVG TRACK SCHEMATIC BOARD */}
+                                            <div className="relative w-full h-[460px] bg-slate-950/90 rounded-xl border border-slate-800/80 overflow-hidden shadow-inner flex items-center justify-center">
+                                                
+                                                {/* Grid Overlay Effect */}
+                                                <div className="absolute inset-0 bg-[radial-gradient(#1E293B_1px,transparent_1px)] [background-size:20px_20px] opacity-40 pointer-events-none"></div>
+
+                                                <svg viewBox="0 0 1000 520" className="w-full h-full relative z-10">
+                                                    
+                                                    {/* Track Edges */}
+                                                    {TRACK_EDGES.map(([src, dst], idx) => {
+                                                        const p1 = STATIONS[src];
+                                                        const p2 = STATIONS[dst];
+                                                        if (!p1 || !p2) return null;
+                                                        
+                                                        const isConflictEdge = (src === "YPR" || dst === "YPR") && activeConflict;
+
+                                                        return (
+                                                            <g key={idx}>
+                                                                {/* Background Track Line */}
+                                                                <line 
+                                                                    x1={p1.x} y1={p1.y} 
+                                                                    x2={p2.x} y2={p2.y} 
+                                                                    stroke={isConflictEdge ? "#FF4D4D" : "#1E293B"} 
+                                                                    strokeWidth={isConflictEdge ? 5 : 4} 
+                                                                    strokeDasharray={isConflictEdge ? "6 6" : "none"}
+                                                                    className={isConflictEdge ? "animate-pulse" : ""}
+                                                                />
+
+                                                                {/* Active Glow Track overlay */}
+                                                                <line 
+                                                                    x1={p1.x} y1={p1.y} 
+                                                                    x2={p2.x} y2={p2.y} 
+                                                                    stroke={isConflictEdge ? "#FF4D4D" : "#06B6D4"} 
+                                                                    strokeWidth={2} 
+                                                                    strokeOpacity={0.6}
+                                                                />
+                                                            </g>
+                                                        );
+                                                    })}
+
+                                                    {/* Station Nodes */}
+                                                    {Object.entries(STATIONS).map(([code, st]) => {
+                                                        const isKarnataka = st.type === "karnataka";
+                                                        const isMajor = st.type === "major";
+
+                                                        return (
+                                                            <g key={code} transform={`translate(${st.x}, ${st.y})`} className="cursor-pointer group">
+                                                                {/* Glowing Aura Ring */}
+                                                                <circle 
+                                                                    r={isMajor ? 12 : 8} 
+                                                                    fill="none" 
+                                                                    stroke={isKarnataka ? "#06B6D4" : "#10B981"} 
+                                                                    strokeWidth={1.5} 
+                                                                    strokeOpacity={0.5} 
+                                                                    className="group-hover:scale-125 transition-transform"
+                                                                />
+                                                                {/* Core Circle */}
+                                                                <circle 
+                                                                    r={isMajor ? 7 : 5} 
+                                                                    fill={isKarnataka ? "#06B6D4" : "#10B981"} 
+                                                                    className="shadow-lg shadow-cyan-500"
+                                                                />
+                                                                
+                                                                {/* Station Code Label */}
+                                                                <text 
+                                                                    x={14} y={4} 
+                                                                    fill="#F8FAFC" 
+                                                                    fontSize={isMajor ? 12 : 10} 
+                                                                    fontWeight={isMajor ? "bold" : "normal"} 
+                                                                    fontFamily="JetBrains Mono, monospace">
+                                                                    {st.code}
+                                                                </text>
+
+                                                                {/* Station Full Name hover hint */}
+                                                                <text 
+                                                                    x={14} y={16} 
+                                                                    fill="#94A3B8" 
+                                                                    fontSize={8} 
+                                                                    fontFamily="Inter, sans-serif">
+                                                                    {st.name}
+                                                                </text>
+                                                            </g>
+                                                        );
+                                                    })}
+
+                                                    {/* Moving Train Dots with animated pulse */}
+                                                    {trains.map((t, i) => {
+                                                        // Plot train near its next target station
+                                                        const targetSt = STATIONS[t.next] || STATIONS["SBC"];
+                                                        const offsetAngle = (i * (360 / trains.length)) * (Math.PI / 180);
+                                                        const tx = targetSt.x - 30 * Math.cos(offsetAngle);
+                                                        const ty = targetSt.y - 30 * Math.sin(offsetAngle);
+                                                        const isConflicted = t.status === "CONFLICT";
+                                                        const isHold = t.status === "HOLD";
+
+                                                        return (
+                                                            <g key={t.id} transform={`translate(${tx}, ${ty})`}>
+                                                                {/* Pulse Ring */}
+                                                                <circle 
+                                                                    r={14} 
+                                                                    fill="none" 
+                                                                    stroke={isConflicted ? "#FF4D4D" : isHold ? "#F59E0B" : "#06B6D4"} 
+                                                                    strokeWidth={1.5} 
+                                                                    className="animate-ping opacity-75"
+                                                                />
+                                                                {/* Train Dot */}
+                                                                <circle 
+                                                                    r={7} 
+                                                                    fill={isConflicted ? "#FF4D4D" : isHold ? "#F59E0B" : "#06B6D4"} 
+                                                                    stroke="#090D16" 
+                                                                    strokeWidth={2}
+                                                                />
+
+                                                                {/* Train ID Tag */}
+                                                                <rect 
+                                                                    x={10} y={-12} 
+                                                                    width={68} height={18} 
+                                                                    rx={4} 
+                                                                    fill="#0F172A" 
+                                                                    stroke={isConflicted ? "#FF4D4D" : "#1E293B"} 
+                                                                    strokeWidth={1}
+                                                                />
+                                                                <text 
+                                                                    x={14} y={1} 
+                                                                    fill={isConflicted ? "#FF4D4D" : "#06B6D4"} 
+                                                                    fontSize={9} 
+                                                                    fontWeight="bold" 
+                                                                    fontFamily="JetBrains Mono, monospace">
+                                                                    {t.id}
+                                                                </text>
+                                                            </g>
+                                                        );
+                                                    })}
+                                                </svg>
+
+                                                {/* MAP LEGEND OVERLAY */}
+                                                <div className="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-md border border-slate-800 px-3 py-2 rounded-xl text-[11px] flex items-center gap-4 text-slate-300">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400"></span>
+                                                        <span>Active Node</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400"></span>
+                                                        <span>Clear Track</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500"></span>
+                                                        <span>Conflict Block</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* INTERACTIVE JUNCTION SWITCH INDICATORS */}
+                                            <div>
+                                                <h3 className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+                                                    <LucideIcon name="sliders" className="w-3.5 h-3.5 text-cyan-400" />
+                                                    <span>Interactive Junction Switch Status (Click to Toggle)</span>
+                                                </h3>
+                                                
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                                                    {Object.values(junctions).map((j) => {
+                                                        const isConflict = j.status === "CONFLICT";
+                                                        const isOpen = j.status === "OPEN";
+                                                        const isDiverged = j.status === "DIVERGED" || j.status === "DIVERGING";
+                                                        const isHold = j.status === "HOLD" || j.status === "CLOSED";
+
+                                                        return (
+                                                            <button 
+                                                                key={j.id}
+                                                                onClick={() => toggleJunctionStatus(j.id)}
+                                                                className={`p-2 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer hover:border-cyan-500/50 ${
+                                                                    isConflict 
+                                                                        ? 'bg-rose-500/10 border-rose-500/40 text-rose-300' 
+                                                                        : isDiverged 
+                                                                            ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-300'
+                                                                            : isOpen 
+                                                                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                                                                                : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                                                                }`}>
+                                                                <div className="flex items-center justify-between text-[10px] font-mono">
+                                                                    <span className="font-bold">{j.id}</span>
+                                                                    <span className="px-1 py-0.2 rounded bg-slate-900/80">{j.code}</span>
+                                                                </div>
+                                                                <div className="text-[11px] font-semibold truncate">{j.name}</div>
+                                                                <div className="text-[10px] font-mono font-bold uppercase tracking-wide flex items-center gap-1">
+                                                                    <span className={`w-1.5 h-1.5 rounded-full ${isConflict ? 'bg-rose-500 animate-ping' : isOpen ? 'bg-emerald-400' : 'bg-cyan-400'}`}></span>
+                                                                    <span>{j.status}</span>
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+
+                                            {/* PLATFORM STATUS MONITOR */}
+                                            <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+                                                <div className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2 flex items-center justify-between">
+                                                    <span className="flex items-center gap-1.5">
+                                                        <LucideIcon name="layers" className="w-3.5 h-3.5 text-cyan-400" />
+                                                        <span>Terminal Platform Occupation (KSR Bengaluru SBC)</span>
+                                                    </span>
+                                                    <span className="text-[11px] text-cyan-400 font-semibold">4 / 6 Platforms Occupied</span>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+                                                    <div className="p-2 rounded-lg bg-slate-900 border border-rose-500/30 text-rose-300">
+                                                        <div className="font-mono text-[10px] text-slate-400">PLATFORM 1</div>
+                                                        <div className="font-bold text-slate-100">#TR-804</div>
+                                                        <div className="text-[10px] text-rose-400">Boarding (SBC)</div>
+                                                    </div>
+
+                                                    <div className="p-2 rounded-lg bg-slate-900 border border-emerald-500/20 text-emerald-400">
+                                                        <div className="font-mono text-[10px] text-slate-400">PLATFORM 2</div>
+                                                        <div className="font-bold text-emerald-400">CLEAR</div>
+                                                        <div className="text-[10px] text-slate-500">Ready</div>
+                                                    </div>
+
+                                                    <div className="p-2 rounded-lg bg-slate-900 border border-cyan-500/30 text-cyan-300">
+                                                        <div className="font-mono text-[10px] text-slate-400">PLATFORM 3</div>
+                                                        <div className="font-bold text-slate-100">#TR-607</div>
+                                                        <div className="text-[10px] text-cyan-400">Arriving in 2m</div>
+                                                    </div>
+
+                                                    <div className="p-2 rounded-lg bg-slate-900 border border-amber-500/30 text-amber-300">
+                                                        <div className="font-mono text-[10px] text-slate-400">PLATFORM 4</div>
+                                                        <div className="font-bold text-slate-100">#TR-108</div>
+                                                        <div className="text-[10px] text-amber-400">Departing</div>
+                                                    </div>
+
+                                                    <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400">
+                                                        <div className="font-mono text-[10px] text-slate-400">PLATFORM 5</div>
+                                                        <div className="font-bold text-slate-200">#TR-412</div>
+                                                        <div className="text-[10px] text-slate-400">Approaching</div>
+                                                    </div>
+
+                                                    <div className="p-2 rounded-lg bg-slate-900 border border-emerald-500/20 text-emerald-400">
+                                                        <div className="font-mono text-[10px] text-slate-400">PLATFORM 6</div>
+                                                        <div className="font-bold text-emerald-400">CLEAR</div>
+                                                        <div className="text-[10px] text-slate-500">Ready</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    {/* RIGHT 35% PANEL: LIVE TELEMETRY & CONFLICT RESOLVER */}
+                                    <div className="lg:col-span-4 flex flex-col gap-4">
+                                        
+                                        {/* CONFLICT RESOLVER WIDGET */}
+                                        {activeConflict ? (
+                                            <div className="bg-rose-950/40 backdrop-blur-md border border-rose-500/60 rounded-2xl p-4 shadow-xl shadow-rose-950/40 flex flex-col gap-3 relative overflow-hidden emergency-flash">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2 text-rose-400 font-mono font-bold text-xs">
+                                                        <LucideIcon name="shield-alert" className="w-4 h-4 animate-bounce" />
+                                                        <span>{activeConflict.title} [{activeConflict.id}]</span>
+                                                    </div>
+                                                    <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] border border-rose-500/40 font-bold">
+                                                        CRITICAL
+                                                    </span>
+                                                </div>
+
+                                                <p className="text-xs text-slate-200 leading-relaxed font-sans">
+                                                    {activeConflict.description}
+                                                </p>
+
+                                                {/* CONFLICT ACTION BUTTONS */}
+                                                <div className="grid grid-cols-2 gap-2 pt-1">
+                                                    <button 
+                                                        onClick={handleReroute}
+                                                        className="px-3 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-mono text-xs flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/30 transition-all cursor-pointer">
+                                                        <LucideIcon name="arrow-right" className="w-3.5 h-3.5" />
+                                                        <span>Reroute Track 2B</span>
+                                                    </button>
+
+                                                    <button 
+                                                        onClick={handleHoldSignal}
+                                                        className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-rose-400 border border-rose-500/50 font-bold font-mono text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                                        <LucideIcon name="power" className="w-3.5 h-3.5" />
+                                                        <span>Hold Signal S-402</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="bg-emerald-950/30 border border-emerald-500/30 rounded-2xl p-4 flex items-center gap-3 text-emerald-400 text-xs font-mono font-semibold shadow-lg">
+                                                <LucideIcon name="check-circle-2" className="w-5 h-5 text-emerald-400" />
+                                                <div>
+                                                    <div>NO ACTIVE TRACK CONFLICTS</div>
+                                                    <div className="text-[10px] text-slate-400 font-normal">All signal blocks operating within safety margins</div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* TRAIN TELEMETRY PANEL CARD */}
+                                        <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-xl shadow-black/40 flex flex-col gap-3 flex-1">
+                                            
+                                            {/* Panel Title & Filters */}
+                                            <div className="flex flex-col gap-2 border-b border-slate-800 pb-3">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="font-heading font-bold text-sm text-slate-100 flex items-center gap-2">
+                                                        <LucideIcon name="terminal" className="w-4 h-4 text-cyan-400" />
+                                                        <span>Live Train Telemetry Stream</span>
+                                                    </h3>
+                                                    <span className="text-xs font-mono text-slate-400">{filteredTrains.length} Units</span>
+                                                </div>
+
+                                                {/* Search & Status Filter */}
+                                                <div className="flex items-center gap-2">
+                                                    <div className="relative flex-1">
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="Search Train ID, Station..." 
+                                                            value={searchQuery}
+                                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500/50 pl-8 font-mono"
+                                                        />
+                                                        <LucideIcon name="search" className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" />
+                                                    </div>
+
+                                                    <select 
+                                                        value={statusFilter} 
+                                                        onChange={(e) => setStatusFilter(e.target.value)}
+                                                        className="bg-slate-950 border border-slate-800 rounded-xl px-2 py-1.5 text-xs font-mono text-slate-300 focus:outline-none focus:border-cyan-500/50">
+                                                        <option value="ALL">All Status</option>
+                                                        <option value="ON_TIME">On Time</option>
+                                                        <option value="CONFLICT">Conflict</option>
+                                                        <option value="HOLD">On Hold</option>
+                                                        <option value="DELAYED">Delayed</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            {/* LIVE TRAIN CARDS LIST */}
+                                            <div className="flex flex-col gap-2.5 overflow-y-auto max-h-[420px] pr-1">
+                                                {filteredTrains.map((t) => {
+                                                    const isConflict = t.status === "CONFLICT";
+                                                    const isHold = t.status === "HOLD";
+                                                    const isDelayed = t.status === "DELAYED";
+
+                                                    return (
+                                                        <div 
+                                                            key={t.id} 
+                                                            className={`p-3 rounded-xl border backdrop-blur-md flex flex-col gap-2 transition-all hover:border-cyan-500/40 ${
+                                                                isConflict 
+                                                                    ? 'bg-rose-500/10 border-rose-500/40 shadow-sm shadow-rose-500/20' 
+                                                                    : isHold 
+                                                                        ? 'bg-amber-500/10 border-amber-500/40' 
+                                                                        : 'bg-slate-950/60 border-slate-800/80 hover:bg-slate-900/60'
+                                                            }`}>
+                                                            
+                                                            {/* Card Top: ID & Status Badge */}
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-mono font-bold text-xs text-cyan-400">{t.id}</span>
+                                                                    <span className="text-xs font-semibold text-slate-200">{t.name}</span>
+                                                                </div>
+
+                                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
+                                                                    isConflict 
+                                                                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' 
+                                                                        : isHold 
+                                                                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                                                            : isDelayed
+                                                                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                                                                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                                                }`}>
+                                                                    {t.status === "ON_TIME" ? "ON TIME" : t.status}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Card Telemetry Metrics */}
+                                                            <div className="grid grid-cols-3 gap-2 text-[11px] bg-slate-900/80 p-2 rounded-lg border border-slate-800/60">
+                                                                <div>
+                                                                    <div className="text-[9px] font-mono text-slate-500">SPEED</div>
+                                                                    <div className="font-mono font-bold text-slate-100">{t.speed} km/h</div>
+                                                                </div>
+
+                                                                <div>
+                                                                    <div className="text-[9px] font-mono text-slate-500">NEXT STN</div>
+                                                                    <div className="font-mono font-semibold text-cyan-300">{t.next}</div>
+                                                                </div>
+
+                                                                <div>
+                                                                    <div className="text-[9px] font-mono text-slate-500">SIGNAL</div>
+                                                                    <div className="font-mono font-semibold text-emerald-400">{t.signal}</div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Speed Visual Gauge Progress */}
+                                                            <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                                                                <div 
+                                                                    className={`h-full rounded-full transition-all duration-500 ${isConflict ? 'bg-rose-500' : isHold ? 'bg-amber-500' : 'bg-cyan-400'}`} 
+                                                                    style={{ width: `${Math.min(100, (t.speed / 140) * 100)}%` }}>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                {/* BOTTOM BAR: QUICK KPI METRICS CARDS */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    
+                                    {/* KPI 1: Average Network Delay */}
+                                    <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-lg flex items-center justify-between">
+                                        <div>
+                                            <div className="text-xs font-mono text-slate-400 uppercase tracking-wider">Average Delay</div>
+                                            <div className="font-heading font-extrabold text-2xl text-slate-100 mt-1">1.2 Mins</div>
+                                            <div className="text-[11px] text-emerald-400 font-mono mt-0.5 flex items-center gap-1">
+                                                <span>↓ 0.4m from last hour</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                                            <LucideIcon name="clock" className="w-5 h-5" />
+                                        </div>
+                                    </div>
+
+                                    {/* KPI 2: Mean Network Speed */}
+                                    <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-lg flex items-center justify-between">
+                                        <div>
+                                            <div className="text-xs font-mono text-slate-400 uppercase tracking-wider">Mean Network Speed</div>
+                                            <div className="font-heading font-extrabold text-2xl text-cyan-400 mt-1">114.5 Km/h</div>
+                                            <div className="text-[11px] text-slate-400 font-mono mt-0.5">Optimal Express Speed</div>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                                            <LucideIcon name="gauge" className="w-5 h-5" />
+                                        </div>
+                                    </div>
+
+                                    {/* KPI 3: Track Capacity Utilization */}
+                                    <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-lg flex items-center justify-between">
+                                        <div>
+                                            <div className="text-xs font-mono text-slate-400 uppercase tracking-wider">Track Capacity %</div>
+                                            <div className="font-heading font-extrabold text-2xl text-slate-100 mt-1">76.4%</div>
+                                            <div className="text-[11px] text-emerald-400 font-mono mt-0.5">Normal Traffic Density</div>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                                            <LucideIcon name="activity" className="w-5 h-5" />
+                                        </div>
+                                    </div>
+
+                                    {/* KPI 4: Active Signal Switches */}
+                                    <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-lg flex items-center justify-between">
+                                        <div>
+                                            <div className="text-xs font-mono text-slate-400 uppercase tracking-wider">Signal Switches</div>
+                                            <div className="font-heading font-extrabold text-2xl text-emerald-400 mt-1">24 / 28</div>
+                                            <div className="text-[11px] text-emerald-400 font-mono mt-0.5">100% Signal Readiness</div>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                                            <LucideIcon name="sliders" className="w-5 h-5" />
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </>
+                        )}
+
+                        {/* VIEW MODE 2: JOURNEY CONNECTING ROUTE PLANNER */}
+                        {viewMode === 'planner' && (
+                            <div className="flex flex-col gap-6">
+                                
+                                {/* Search Constraints Form */}
+                                <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl">
+                                    <h2 className="font-heading font-bold text-lg text-slate-100 mb-1 flex items-center gap-2">
+                                        <LucideIcon name="compass" className="w-5 h-5 text-cyan-400" />
+                                        <span>Journey Query & Constraint Matrix</span>
+                                    </h2>
+                                    <p className="text-xs text-slate-400 mb-5">Configure travel origin, destination, departure date, and transfer layover constraints</p>
+
+                                    <form onSubmit={handleRouteSearch} className="flex flex-col gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                            <div>
+                                                <label className="text-xs font-mono text-slate-400 block mb-1">Origin Station</label>
+                                                <select 
+                                                    value={plannerOrigin} 
+                                                    onChange={(e) => setPlannerOrigin(e.target.value)}
+                                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500/50">
+                                                    <option value="NDLS">New Delhi [NDLS]</option>
+                                                    <option value="SBC">KSR Bengaluru [SBC]</option>
+                                                    <option value="YPR">Yesvantpur Junction [YPR]</option>
+                                                    <option value="SMVB">SMVT Bengaluru [SMVB]</option>
+                                                    <option value="MYS">Mysuru Junction [MYS]</option>
+                                                    <option value="KLBG">Kalaburagi Junction [KLBG]</option>
+                                                    <option value="BJP">Vijayapura Station [BJP]</option>
+                                                    <option value="BGM">Belagavi Junction [BGM]</option>
+                                                    <option value="MMCT">Mumbai Central [MMCT]</option>
+                                                    <option value="HWH">Howrah Junction [HWH]</option>
+                                                    <option value="MAS">Chennai Central [MAS]</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-xs font-mono text-slate-400 block mb-1">Destination Station</label>
+                                                <select 
+                                                    value={plannerDest} 
+                                                    onChange={(e) => setPlannerDest(e.target.value)}
+                                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500/50">
+                                                    <option value="SBC">KSR Bengaluru [SBC]</option>
+                                                    <option value="NDLS">New Delhi [NDLS]</option>
+                                                    <option value="YPR">Yesvantpur Junction [YPR]</option>
+                                                    <option value="SMVB">SMVT Bengaluru [SMVB]</option>
+                                                    <option value="MYS">Mysuru Junction [MYS]</option>
+                                                    <option value="KLBG">Kalaburagi Junction [KLBG]</option>
+                                                    <option value="BJP">Vijayapura Station [BJP]</option>
+                                                    <option value="BGM">Belagavi Junction [BGM]</option>
+                                                    <option value="MMCT">Mumbai Central [MMCT]</option>
+                                                    <option value="HWH">Howrah Junction [HWH]</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-xs font-mono text-slate-400 block mb-1">Departure Date</label>
+                                                <input 
+                                                    type="date" 
+                                                    value={plannerDate} 
+                                                    onChange={(e) => setPlannerDate(e.target.value)}
+                                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500/50"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="text-xs font-mono text-slate-400 block mb-1">Ranking Priority</label>
+                                                <select 
+                                                    value={sortBy} 
+                                                    onChange={(e) => setSortBy(e.target.value)}
+                                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-cyan-500/50">
+                                                    <option value="duration">⚡ Fastest Total Journey</option>
+                                                    <option value="layover">⏳ Shortest Layover</option>
+                                                    <option value="fare">💎 Lowest Fare</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between border-t border-slate-800 pt-4 mt-2">
+                                            <div className="flex items-center gap-6 text-xs text-slate-400">
+                                                <div>Min Buffer: <strong className="text-cyan-400 font-mono">{minBuffer}m</strong></div>
+                                                <div>Max Buffer: <strong className="text-cyan-400 font-mono">{(maxBuffer/60).toFixed(1)}h</strong></div>
+                                            </div>
+
+                                            <button 
+                                                type="submit" 
+                                                className="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-heading text-sm flex items-center gap-2 shadow-lg shadow-cyan-500/30 transition-all cursor-pointer">
+                                                <span>Compute Routes</span>
+                                                <LucideIcon name="arrow-right" className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                {/* Results View */}
+                                {routeResults && (
+                                    <div className="flex flex-col gap-4">
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-center">
+                                                <div className="text-xl font-bold text-slate-100 font-heading">{routeResults.total_routes_found}</div>
+                                                <div className="text-xs text-slate-400">Total Routes</div>
+                                            </div>
+                                            <div className="bg-slate-900/60 border border-emerald-500/30 rounded-xl p-3 text-center">
+                                                <div className="text-xl font-bold text-emerald-400 font-heading">{routeResults.direct_routes_count}</div>
+                                                <div className="text-xs text-slate-400">Direct Trains</div>
+                                            </div>
+                                            <div className="bg-slate-900/60 border border-cyan-500/30 rounded-xl p-3 text-center">
+                                                <div className="text-xl font-bold text-cyan-400 font-heading">{routeResults.connecting_routes_count}</div>
+                                                <div className="text-xs text-slate-400">1-Stop Connections</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-col gap-3">
+                                            {routeResults.routes.map((r, idx) => (
+                                                <div key={idx} className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col gap-3 hover:border-cyan-500/30 transition-all">
+                                                    <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                                                        <span className={`px-3 py-1 rounded-full text-xs font-mono font-bold ${r.type === 'DIRECT' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'}`}>
+                                                            {r.type === 'DIRECT' ? '⚡ DIRECT TRAIN' : '🔀 1-STOP CONNECTING'}
+                                                        </span>
+                                                        <div className="flex gap-4 text-xs font-mono text-slate-300">
+                                                            <span>Duration: <strong className="text-slate-100">{Math.floor(r.total_duration_mins/60)}h {r.total_duration_mins%60}m</strong></span>
+                                                            <span>Est. Fare: <strong className="text-cyan-400">₹ {r.total_fare}</strong></span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex flex-col gap-2">
+                                                        {r.legs.map((leg, lIdx) => (
+                                                            <div key={lIdx} className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs font-mono">
+                                                                <div>
+                                                                    <div className="text-cyan-400 font-bold">{leg.from_station} ({leg.departure.split(' ')[1]})</div>
+                                                                    <div className="text-[10px] text-slate-400">{leg.from_station_name}</div>
+                                                                </div>
+                                                                <div className="text-center">
+                                                                    <div className="text-slate-200 font-semibold">{leg.train_name} (#{leg.train_no})</div>
+                                                                    <div className="text-[10px] text-slate-500">{leg.distance_km} km • Platform {leg.departure_platform}</div>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <div className="text-emerald-400 font-bold">{leg.to_station} ({leg.arrival.split(' ')[1]})</div>
+                                                                    <div className="text-[10px] text-slate-400">{leg.to_station_name}</div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                    </main>
+
+                    {/* FOOTER */}
+                    <footer className="border-t border-slate-800/80 py-4 text-center text-xs text-slate-500 font-mono">
+                        RailConnect // Dark Mode Real-Time Train Routing & Signal Control Dashboard &copy; 2026
+                    </footer>
+
                 </div>
-            </form>
-        </section>
+            );
+        }
 
-        <!-- Main Content Area: Tabs & Views -->
-        <section class="results-section">
-            <div class="tabs-nav glass-card">
-                <button class="tab-btn active" data-tab="routesTab">
-                    <span>🚉 Route Options</span>
-                    <span id="routeCountBadge" class="count-pill">0</span>
-                </button>
-                <button class="tab-btn" data-tab="networkTab">
-                    <span>🌐 Railway Network Canvas</span>
-                </button>
-                <button class="tab-btn" data-tab="blueprintTab">
-                    <span>📐 Algorithm Architecture</span>
-                </button>
-            </div>
-
-            <!-- TAB 1: Route Options List -->
-            <div id="routesTab" class="tab-content active">
-                <div id="summaryStats" class="summary-stats hidden">
-                    <div class="stat-card">
-                        <span class="stat-num" id="statTotal">0</span>
-                        <span class="stat-label">Total Routes</span>
-                    </div>
-                    <div class="stat-card accent-green">
-                        <span class="stat-num" id="statDirect">0</span>
-                        <span class="stat-label">Direct Trains</span>
-                    </div>
-                    <div class="stat-card accent-cyan">
-                        <span class="stat-num" id="statConnecting">0</span>
-                        <span class="stat-label">1-Stop Connections</span>
-                    </div>
-                    <div class="stat-card accent-amber">
-                        <span class="stat-num" id="statJunctions">0</span>
-                        <span class="stat-label">Candidate Junctions</span>
-                    </div>
-                </div>
-
-                <div id="loadingState" class="state-container hidden">
-                    <div class="spinner"></div>
-                    <p class="state-title">Evaluating Junction Intersections & Buffer Constraints...</p>
-                    <p class="state-desc">Running Phase 1 junction discovery & Phase 2 time window validation</p>
-                </div>
-
-                <div id="emptyState" class="state-container">
-                    <div class="state-icon">🚉</div>
-                    <h3>Ready to Plan Journey</h3>
-                    <p>Select origin, destination, and departure date to compute direct and 1-stop connecting trains.</p>
-                </div>
-
-                <div id="routesList" class="routes-list"></div>
-            </div>
-
-            <!-- TAB 2: Network Canvas Map -->
-            <div id="networkTab" class="tab-content">
-                <div class="glass-card canvas-card">
-                    <div class="canvas-header">
-                        <h3>Interactive Station Connection Graph</h3>
-                        <p>Visualizing railway network nodes and key transfer junctions</p>
-                    </div>
-                    <div class="canvas-container">
-                        <canvas id="networkCanvas"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB 3: Algorithm Architecture Blueprint -->
-            <div id="blueprintTab" class="tab-content">
-                <div class="blueprint-grid">
-                    <div class="glass-card blueprint-card">
-                        <div class="phase-header">
-                            <span class="phase-num">PHASE 1</span>
-                            <h3>Junction Station Identification</h3>
-                        </div>
-                        <p class="phase-desc">Finds candidate connection hubs $B$ by evaluating station reachability sets:</p>
-                        <div class="code-block">
-                            <pre>Set 1 = { Stations reachable from Origin A }
-Set 2 = { Stations connecting to Destination C }
-Candidate Junctions = Set 1 ∩ Set 2</pre>
-                        </div>
-                    </div>
-
-                    <div class="glass-card blueprint-card">
-                        <div class="phase-header">
-                            <span class="phase-num">PHASE 2</span>
-                            <h3>Time Constraint & Day-of-Week Filter</h3>
-                        </div>
-                        <p class="phase-desc">Validates operating days across midnight crossovers and enforces transfer buffer bounds:</p>
-                        <div class="code-block">
-                            <pre>Δtmin ≤ Departure(Train 2) - Arrival(Train 1) ≤ Δtmax
-
-✓ Validates train operating days (runs_mon ... runs_sun)
-✓ Accounts for multi-day journey offsets (day_number)</pre>
-                        </div>
-                    </div>
-
-                    <div class="glass-card blueprint-card">
-                        <div class="phase-header">
-                            <span class="phase-num">PHASE 3</span>
-                            <h3>Multi-Criteria Route Ranking</h3>
-                        </div>
-                        <p class="phase-desc">Sorts direct and 1-stop options based on passenger preferences:</p>
-                        <ul class="blueprint-list">
-                            <li>⚡ <strong>Total Journey Duration</strong>: Departure at A → Arrival at C</li>
-                            <li>⏳ <strong>Shortest Layover</strong>: Minimizes platform wait time</li>
-                            <li>💎 <strong>Lowest Fare</strong>: Calculated by distance and service class</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="app-footer">
-        <p>RailConnect Indirect Train / Connecting Route Planner &copy; 2026</p>
-    </footer>
-
-    <script src="/static/app.js"></script>
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
 </body>
 </html>
