@@ -13,9 +13,6 @@ A smart railway route planner that helps users find direct and connecting train 
 
 RailConnect is a web-based train routing system that searches for both direct and indirect routes. It evaluates transfer stations, waiting time between trains, and route ranking to suggest practical travel plans.
 
-📄 **PDF Architecture & Interview Guide**: Download the complete manual [RailConnect_FullStack_TrainRouting_Documentation.pdf](RailConnect_FullStack_TrainRouting_Documentation.pdf).
-
-
 ---
 
 ## 📸 Project Preview
