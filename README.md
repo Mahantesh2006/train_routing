@@ -14,13 +14,13 @@ Visit: https://train-routing-two.vercel.app
 
 ## 📸 Screenshots
 
-![RailConnect dashboard overview](static/dashboard-overview.svg)
+### Live Dashboard Overview
 
-### Example journey: Delhi → Bangalore
+![RailConnect dashboard overview](static/readme-screenshot-dashboard.svg)
 
-![Route planner view](static/dashboard-overview.svg)
+### Delhi → Bangalore Route Search
 
-![Route details and signal view](static/dashboard-route-details.svg)
+![Route search and results screenshot](static/readme-screenshot-routes.svg)
 
 ## ✨ What this project does
 

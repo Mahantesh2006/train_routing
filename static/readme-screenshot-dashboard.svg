@@ -1,0 +1,64 @@
+<svg width="1600" height="1000" viewBox="0 0 1600 1000" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="1000" fill="#060B14"/>
+  <rect x="40" y="40" width="1520" height="920" rx="28" fill="#0B1627" stroke="#152135" stroke-width="2"/>
+
+  <rect x="86" y="92" width="1428" height="86" rx="20" fill="#0A1628" stroke="#1A2A42"/>
+  <circle cx="134" cy="135" r="22" fill="#18B7FF"/>
+  <circle cx="134" cy="135" r="10" fill="#F8FAFC"/>
+  <text x="168" y="130" fill="#F8FAFC" font-family="Inter, sans-serif" font-size="22" font-weight="700">RAILCONNECT</text>
+  <text x="168" y="155" fill="#94A3B8" font-size="14">Real-Time Signal Routing & Telemetry Control Center</text>
+
+  <rect x="404" y="104" width="130" height="32" rx="16" fill="#0F1E36" stroke="#1D3657"/>
+  <text x="420" y="126" fill="#7DD3FC" font-size="13" font-weight="700">CONTROL ROOM</text>
+  <rect x="542" y="104" width="98" height="32" rx="16" fill="#172A44" stroke="#23406B"/>
+  <text x="558" y="126" fill="#7DD3FC" font-size="13" font-weight="700">v2.0</text>
+
+  <rect x="1100" y="104" width="220" height="32" rx="16" fill="#0F1E36" stroke="#1D3657"/>
+  <text x="1124" y="126" fill="#34D399" font-size="13" font-weight="700">ALL SYSTEMS OPERATIONAL</text>
+  <rect x="1334" y="104" width="180" height="32" rx="16" fill="#0F1E36" stroke="#1D3657"/>
+  <text x="1348" y="126" fill="#7DD3FC" font-size="13" font-weight="700">ACTIVE UNITS: 8 / 18</text>
+
+  <rect x="86" y="200" width="560" height="64" rx="18" fill="#0F1E36" stroke="#1A2A42"/>
+  <text x="116" y="242" fill="#7DD3FC" font-size="14" font-weight="700">Signal Control</text>
+  <rect x="250" y="208" width="160" height="40" rx="18" fill="#111E34" stroke="#1A2A42"/>
+  <text x="270" y="234" fill="#F8FAFC" font-size="14" font-weight="700">Route Planner</text>
+  <rect x="426" y="208" width="190" height="40" rx="18" fill="#B91C1C"/>
+  <text x="452" y="234" fill="#F8FAFC" font-size="14" font-weight="700">EMERGENCY OVERRIDE</text>
+
+  <rect x="86" y="284" width="960" height="540" rx="24" fill="#0F1E36" stroke="#1A2A42"/>
+  <text x="116" y="328" fill="#F8FAFC" font-size="18" font-weight="700">Interactive Rail Network Track Schematic</text>
+  <text x="116" y="354" fill="#94A3B8" font-size="14">Node-based signal blocks, real-time train positions, and junction switch indicators</text>
+
+  <rect x="120" y="384" width="820" height="420" rx="18" fill="#09131F" stroke="#1B2C42"/>
+  <circle cx="200" cy="480" r="8" fill="#0DE68A"/>
+  <text x="216" y="486" fill="#94A3B8" font-size="13">NDLS</text>
+  <circle cx="270" cy="520" r="6" fill="#5EEAD4"/>
+  <text x="286" y="525" fill="#94A3B8" font-size="13">VGLJ</text>
+  <circle cx="360" cy="490" r="6" fill="#5EEAD4"/>
+  <text x="376" y="495" fill="#94A3B8" font-size="13">BPL</text>
+  <circle cx="520" cy="530" r="6" fill="#5EEAD4"/>
+  <text x="536" y="535" fill="#94A3B8" font-size="13">SC</text>
+  <circle cx="660" cy="520" r="8" fill="#0DE68A"/>
+  <text x="676" y="525" fill="#94A3B8" font-size="13">YPR</text>
+  <circle cx="760" cy="560" r="8" fill="#0DE68A"/>
+  <text x="776" y="565" fill="#94A3B8" font-size="13">SBC</text>
+  <circle cx="540" cy="600" r="6" fill="#FEC84C"/>
+  <text x="556" y="605" fill="#F8FAFC" font-size="12">TR-804</text>
+  <path d="M200 480 C260 520 330 500 360 490 S470 510 520 530 S620 520 660 520 S720 540 760 560" stroke="#38BDF8" stroke-width="3" fill="none" opacity="0.75"/>
+
+  <rect x="1120" y="384" width="370" height="420" rx="18" fill="#0F1E36" stroke="#1A2A42"/>
+  <text x="1160" y="426" fill="#7DD3FC" font-size="16" font-weight="700">Live Train Telemetry Stream</text>
+  <text x="1160" y="450" fill="#94A3B8" font-size="13">8 Units</text>
+  <rect x="1160" y="478" width="320" height="80" rx="18" fill="#09131F" stroke="#1B2C42"/>
+  <text x="1184" y="516" fill="#38BDF8" font-size="15" font-weight="700">#TR-804 Karnataka SF</text>
+  <text x="1184" y="540" fill="#94A3B8" font-size="13">Speed 120 km/h • Next STN: YPR • Signal: S-102</text>
+  <rect x="1184" y="518" width="250" height="12" rx="6" fill="#0D9488"/>
+  <rect x="1160" y="578" width="320" height="80" rx="18" fill="#09131F" stroke="#1B2C42"/>
+  <text x="1184" y="616" fill="#38BDF8" font-size="15" font-weight="700">#TR-412 SBC Rajdhani</text>
+  <text x="1184" y="640" fill="#94A3B8" font-size="13">Speed 110 km/h • Next STN: YPR • Signal: S-104</text>
+  <rect x="1184" y="618" width="200" height="12" rx="6" fill="#0D9488"/>
+  <rect x="1160" y="678" width="320" height="80" rx="18" fill="#09131F" stroke="#1B2C42"/>
+  <text x="1184" y="716" fill="#38BDF8" font-size="15" font-weight="700">#TR-909 Belagavi Vande Bharat</text>
+  <text x="1184" y="740" fill="#94A3B8" font-size="13">Speed 130 km/h • Next STN: BGM • Signal: S-201</text>
+  <rect x="1184" y="718" width="230" height="12" rx="6" fill="#0D9488"/>
+</svg>
