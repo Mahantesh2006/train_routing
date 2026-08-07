@@ -6,7 +6,7 @@
   <circle cx="134" cy="135" r="22" fill="#18B7FF"/>
   <circle cx="134" cy="135" r="10" fill="#F8FAFC"/>
   <text x="168" y="130" fill="#F8FAFC" font-family="Inter, sans-serif" font-size="22" font-weight="700">RAILCONNECT</text>
-  <text x="168" y="155" fill="#94A3B8" font-size="14">Real-Time Signal Routing & Telemetry Control Center</text>
+  <text x="168" y="155" fill="#94A3B8" font-size="14">Real-Time Signal Routing &amp; Telemetry Control Center</text>
 
   <rect x="96" y="210" width="1300" height="72" rx="18" fill="#0F1E36" stroke="#1A2A42"/>
   <text x="120" y="256" fill="#F8FAFC" font-size="16" font-weight="700">New Delhi [NDLS]</text>
