@@ -51,5 +51,27 @@ def test_sorting_modes():
     fares = [r["total_fare"] for r in fare_results["routes"]]
     assert fares == sorted(fares)
 
+def test_karnataka_stations_routes():
+    # Test Mysuru (MYS) -> Vijayapura (BJP) direct & connecting
+    results_mys_bjp = search_routes("MYS", "BJP", "2026-07-27")
+    assert results_mys_bjp["total_routes_found"] > 0
+
+    # Test New Delhi (NDLS) -> Kalaburagi (KLBG)
+    results_ndls_klbg = search_routes("NDLS", "KLBG", "2026-07-27")
+    assert results_ndls_klbg["total_routes_found"] > 0
+
+    # Test Bengaluru (SBC) -> Belagavi (BGM)
+    results_sbc_bgm = search_routes("SBC", "BGM", "2026-07-27")
+    assert results_sbc_bgm["total_routes_found"] > 0
+
+    # Test SMVT Bengaluru (SMVB) -> Howrah (HWH)
+    results_smvb_hwh = search_routes("SMVB", "HWH", "2026-07-27")
+    assert results_smvb_hwh["total_routes_found"] > 0
+
+    # Test Yesvantpur (YPR) -> Kalaburagi (KLBG)
+    results_ypr_klbg = search_routes("YPR", "KLBG", "2026-07-27")
+    assert results_ypr_klbg["total_routes_found"] > 0
+
 if __name__ == '__main__':
     pytest.main(["-v", "test_routing.py"])
+

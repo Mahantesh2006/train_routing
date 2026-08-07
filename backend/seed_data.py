@@ -15,13 +15,19 @@ def seed_railway_database():
     cursor.execute("DELETE FROM trains")
     cursor.execute("DELETE FROM stations")
 
-    # 1. Insert Stations (16 Major Railway Hubs & Junctions)
+    # 1. Insert Stations (22 Railway Hubs & Junctions including Karnataka Stations)
     stations = [
         ("NDLS", "New Delhi", "Delhi", 28.6427, 77.2195, 1),
         ("MMCT", "Mumbai Central", "Mumbai", 18.9696, 72.8193, 1),
         ("HWH", "Howrah Junction", "Kolkata", 22.5851, 88.3415, 1),
         ("MAS", "Chennai Central", "Chennai", 13.0827, 80.2707, 1),
         ("SBC", "KSR Bengaluru", "Bengaluru", 12.9781, 77.5697, 1),
+        ("YPR", "Yesvantpur Junction", "Bengaluru", 13.0238, 77.5508, 1),
+        ("SMVB", "SMVT Bengaluru", "Bengaluru", 13.0036, 77.6521, 1),
+        ("MYS", "Mysuru Junction", "Mysuru (Mysore)", 12.3164, 76.6457, 1),
+        ("KLBG", "Kalaburagi Junction", "Kalaburagi (Gulbarga)", 17.3297, 76.8343, 1),
+        ("BJP", "Vijayapura Station", "Vijayapura (Bijapur)", 16.8302, 75.7100, 1),
+        ("BGM", "Belagavi Junction", "Belagavi", 15.8497, 74.4977, 1),
         ("BPL", "Bhopal Junction", "Bhopal", 23.2599, 77.4126, 1),
         ("NGP", "Nagpur Junction", "Nagpur", 21.1458, 79.0882, 1),
         ("CNB", "Kanpur Central", "Kanpur", 26.4542, 80.3500, 1),
@@ -40,9 +46,9 @@ def seed_railway_database():
         stations
     )
 
-    # 2. Insert Trains (50+ Express, Rajdhani, Superfast, Vande Bharat Trains)
+    # 2. Insert Trains (Express, Rajdhani, Superfast, Vande Bharat Trains)
     trains = [
-        # North-South Corridor (NDLS <-> VGLJ <-> BPL <-> NGP <-> SC <-> SBC / MAS)
+        # North-South & Karnataka Corridor
         ("12628", "Karnataka Express (DN)", "Superfast", 1, 1, 1, 1, 1, 1, 1),
         ("12627", "Karnataka Express (UP)", "Superfast", 1, 1, 1, 1, 1, 1, 1),
         ("22691", "SBC Rajdhani (UP)", "Rajdhani", 1, 1, 1, 1, 1, 1, 1),
@@ -72,7 +78,7 @@ def seed_railway_database():
         ("12801", "Purushottam Express Return", "Express", 1, 1, 1, 1, 1, 1, 1),
         ("22436", "Vande Bharat Express", "Vande Bharat", 1, 1, 0, 1, 1, 1, 1),
 
-        # West-South Corridor (MMCT / BRC / ADI <-> SBC / MAS / SC)
+        # West-South Corridor (MMCT / BRC / ADI <-> SBC / MAS / SC / KLBG)
         ("11013", "Lokmanya Tilak SF", "Superfast", 1, 1, 1, 1, 1, 1, 1),
         ("11014", "Lokmanya Tilak SF Return", "Superfast", 1, 1, 1, 1, 1, 1, 1),
         ("16534", "Jodhpur SBC Express", "Express", 1, 1, 1, 1, 1, 1, 1),
@@ -86,7 +92,7 @@ def seed_railway_database():
         ("12840", "Coromandel Express", "Superfast", 1, 1, 1, 1, 1, 1, 1),
         ("12839", "Coromandel Express Return", "Superfast", 1, 1, 1, 1, 1, 1, 1),
 
-        # Inter-Corridors (PNBE / CNB / BPL / NGP <-> SBC / MAS / SC / MMCT)
+        # Inter-Corridors & Karnataka Expresses (Mysuru, Belagavi, Vijayapura, Kalaburagi, SMVT)
         ("12296", "Sanghamitra Express", "Superfast", 1, 1, 1, 1, 1, 1, 1),
         ("12295", "Sanghamitra Express Return", "Superfast", 1, 1, 1, 1, 1, 1, 1),
         ("12976", "Jaipur Mysore Express", "Express", 1, 1, 1, 1, 1, 1, 1),
@@ -96,7 +102,21 @@ def seed_railway_database():
         ("12834", "Howrah Ahmedabad SF", "Superfast", 1, 1, 1, 1, 1, 1, 1),
         ("12833", "Ahmedabad Howrah SF", "Superfast", 1, 1, 1, 1, 1, 1, 1),
         ("12612", "Garib Rath Express", "Garib Rath", 1, 1, 1, 1, 1, 1, 1),
-        ("12611", "Garib Rath Return", "Garib Rath", 1, 1, 1, 1, 1, 1, 1)
+        ("12611", "Garib Rath Return", "Garib Rath", 1, 1, 1, 1, 1, 1, 1),
+
+        # New Karnataka Regional Services
+        ("16535", "Gol Gumbaz Express (UP)", "Express", 1, 1, 1, 1, 1, 1, 1),
+        ("16536", "Gol Gumbaz Express (DN)", "Express", 1, 1, 1, 1, 1, 1, 1),
+        ("16589", "Rani Chennamma Express (UP)", "Express", 1, 1, 1, 1, 1, 1, 1),
+        ("16590", "Rani Chennamma Express (DN)", "Express", 1, 1, 1, 1, 1, 1, 1),
+        ("20607", "Mysuru Vande Bharat Express", "Vande Bharat", 1, 1, 1, 1, 1, 1, 1),
+        ("20608", "Mysuru Vande Bharat Return", "Vande Bharat", 1, 1, 1, 1, 1, 1, 1),
+        ("20653", "Belagavi Vande Bharat Express", "Vande Bharat", 1, 1, 1, 1, 1, 1, 1),
+        ("20654", "Belagavi Vande Bharat Return", "Vande Bharat", 1, 1, 1, 1, 1, 1, 1),
+        ("12253", "SMVT Howrah SF Express", "Superfast", 1, 1, 1, 1, 1, 1, 1),
+        ("12254", "SMVT Howrah SF Return", "Superfast", 1, 1, 1, 1, 1, 1, 1),
+        ("17307", "Basava Express (UP)", "Express", 1, 1, 1, 1, 1, 1, 1),
+        ("17308", "Basava Express (DN)", "Express", 1, 1, 1, 1, 1, 1, 1)
     ]
 
     cursor.executemany(
@@ -106,21 +126,25 @@ def seed_railway_database():
 
     # 3. Insert Schedules
     schedules = [
-        # --- 12628 Karnataka Exp (NDLS -> VGLJ -> BPL -> NGP -> SC -> SBC) ---
+        # --- 12628 Karnataka Exp (NDLS -> VGLJ -> BPL -> NGP -> SC -> KLBG -> YPR -> SBC) ---
         ("12628", "NDLS", 1, None, "20:20", 1, 0, 3),
         ("12628", "VGLJ", 2, "01:00", "01:08", 2, 410, 1),
         ("12628", "BPL",  3, "04:45", "04:55", 2, 701, 1),
         ("12628", "NGP",  4, "10:25", "10:30", 2, 1090, 2),
         ("12628", "SC",   5, "20:10", "20:20", 2, 1668, 3),
-        ("12628", "SBC",  6, "12:00", None,    3, 2400, 1),
+        ("12628", "KLBG", 6, "23:50", "23:55", 2, 1880, 2),
+        ("12628", "YPR",  7, "11:30", "11:35", 3, 2390, 4),
+        ("12628", "SBC",  8, "12:00", None,    3, 2400, 1),
 
-        # --- 12627 Karnataka Exp Return (SBC -> SC -> NGP -> BPL -> VGLJ -> NDLS) ---
+        # --- 12627 Karnataka Exp Return (SBC -> YPR -> KLBG -> SC -> NGP -> BPL -> VGLJ -> NDLS) ---
         ("12627", "SBC",  1, None, "19:20", 1, 0, 1),
-        ("12627", "SC",   2, "11:00", "11:10", 2, 732, 2),
-        ("12627", "NGP",  3, "21:15", "21:20", 2, 1310, 1),
-        ("12627", "BPL",  4, "02:50", "03:00", 3, 1699, 3),
-        ("12627", "VGLJ", 5, "06:25", "06:33", 3, 1990, 2),
-        ("12627", "NDLS", 6, "11:30", None,    3, 2400, 4),
+        ("12627", "YPR",  2, "19:35", "19:40", 1, 10, 2),
+        ("12627", "KLBG", 3, "05:10", "05:15", 2, 520, 1),
+        ("12627", "SC",   4, "11:00", "11:10", 2, 732, 2),
+        ("12627", "NGP",  5, "21:15", "21:20", 2, 1310, 1),
+        ("12627", "BPL",  6, "02:50", "03:00", 3, 1699, 3),
+        ("12627", "VGLJ", 7, "06:25", "06:33", 3, 1990, 2),
+        ("12627", "NDLS", 8, "11:30", None,    3, 2400, 4),
 
         # --- 22692 SBC Rajdhani (NDLS -> VGLJ -> BPL -> NGP -> SBC) ---
         ("22692", "NDLS", 1, None, "19:50", 1, 0, 5),
@@ -190,15 +214,19 @@ def seed_railway_database():
         ("12833", "PRYJ", 5, "01:20", "01:30", 2, 1588, 2),
         ("12833", "HWH",  6, "13:30", None,    2, 2400, 10),
 
-        # --- 11013 Lokmanya Tilak SF (MMCT -> BRC -> SBC) ---
+        # --- 11013 Lokmanya Tilak SF (MMCT -> BRC -> KLBG -> YPR -> SBC) ---
         ("11013", "MMCT", 1, None, "10:30", 1, 0, 1),
         ("11013", "BRC",  2, "17:10", "17:20", 1, 392, 3),
-        ("11013", "SBC",  3, "15:15", None,    2, 1500, 5),
+        ("11013", "KLBG", 3, "06:20", "06:25", 2, 1020, 2),
+        ("11013", "YPR",  4, "14:45", "14:50", 2, 1490, 3),
+        ("11013", "SBC",  5, "15:15", None,    2, 1500, 5),
 
-        # --- 11014 Lokmanya Tilak Return (SBC -> BRC -> MMCT) ---
+        # --- 11014 Lokmanya Tilak Return (SBC -> YPR -> KLBG -> BRC -> MMCT) ---
         ("11014", "SBC",  1, None, "16:00", 1, 0, 4),
-        ("11014", "BRC",  2, "13:40", "13:50", 2, 1108, 1),
-        ("11014", "MMCT", 3, "20:30", None,    2, 1500, 2),
+        ("11014", "YPR",  2, "16:15", "16:20", 1, 10, 2),
+        ("11014", "KLBG", 3, "23:40", "23:45", 1, 480, 1),
+        ("11014", "BRC",  4, "13:40", "13:50", 2, 1108, 1),
+        ("11014", "MMCT", 5, "20:30", None,    2, 1500, 2),
 
         # --- 12296 Sanghamitra Exp (PNBE -> CNB -> PRYJ -> VGLJ -> BPL -> NGP -> SBC) ---
         ("12296", "PNBE", 1, None, "20:15", 1, 0, 1),
@@ -218,17 +246,23 @@ def seed_railway_database():
         ("12295", "PRYJ", 6, "01:25", "01:30", 3, 2370, 1),
         ("12295", "PNBE", 7, "07:40", None,    3, 2730, 1),
 
-        # --- 12976 Jaipur Mysore Exp (JP -> BPL -> NGP -> SBC) ---
+        # --- 12976 Jaipur Mysore Exp (JP -> BPL -> NGP -> KLBG -> YPR -> SBC -> MYS) ---
         ("12976", "JP",   1, None, "19:35", 1, 0, 4),
         ("12976", "BPL",  2, "07:20", "07:35", 2, 580, 4),
         ("12976", "NGP",  3, "13:45", "13:50", 2, 970, 2),
-        ("12976", "SBC",  4, "13:00", None,    3, 2245, 6),
+        ("12976", "KLBG", 4, "01:10", "01:15", 3, 1630, 1),
+        ("12976", "YPR",  5, "12:15", "12:20", 3, 2235, 2),
+        ("12976", "SBC",  6, "13:00", "13:15", 3, 2245, 6),
+        ("12976", "MYS",  7, "16:00", None,    3, 2383, 1),
 
-        # --- 12975 Jaipur Mysore Return (SBC -> NGP -> BPL -> JP) ---
-        ("12975", "SBC",  1, None, "13:00", 1, 0, 5),
-        ("12975", "NGP",  2, "11:50", "11:55", 2, 1275, 1),
-        ("12975", "BPL",  3, "18:00", "18:10", 2, 1665, 3),
-        ("12975", "JP",   4, "06:15", None,    3, 2245, 2),
+        # --- 12975 Jaipur Mysore Return (MYS -> SBC -> YPR -> KLBG -> NGP -> BPL -> JP) ---
+        ("12975", "MYS",  1, None, "10:30", 1, 0, 2),
+        ("12975", "SBC",  2, "13:00", "13:15", 1, 138, 5),
+        ("12975", "YPR",  3, "13:30", "13:35", 1, 148, 1),
+        ("12975", "KLBG", 4, "01:10", "01:15", 2, 753, 2),
+        ("12975", "NGP",  5, "11:50", "11:55", 2, 1413, 1),
+        ("12975", "BPL",  6, "18:00", "18:10", 2, 1803, 3),
+        ("12975", "JP",   7, "06:15", None,    3, 2383, 2),
 
         # --- 11041 CSMT Chennai Mail (MMCT -> BRC -> SC -> MAS) ---
         ("11041", "MMCT", 1, None, "14:00", 1, 0, 4),
@@ -262,17 +296,103 @@ def seed_railway_database():
         ("12839", "HWH",  1, None, "23:45", 1, 0, 9),
         ("12839", "MAS",  2, "19:15", None,    2, 1660, 2),
 
-        # --- 22684 LKO YPR SF (CNB -> VGLJ -> NGP -> SBC) ---
+        # --- 22684 LKO YPR SF (CNB -> VGLJ -> NGP -> KLBG -> YPR) ---
         ("22684", "CNB",  1, None, "20:30", 1, 0, 3),
         ("22684", "VGLJ", 2, "00:45", "00:53", 2, 220, 1),
         ("22684", "NGP",  3, "08:15", "08:20", 2, 750, 2),
-        ("22684", "SBC",  4, "13:30", None,    3, 2030, 4),
+        ("22684", "KLBG", 4, "18:40", "18:45", 2, 1410, 1),
+        ("22684", "YPR",  5, "05:00", None,    3, 2020, 4),
 
-        # --- 22683 LKO YPR Return (SBC -> NGP -> VGLJ -> CNB) ---
-        ("22683", "SBC",  1, None, "15:45", 1, 0, 2),
-        ("22683", "NGP",  2, "19:00", "19:05", 2, 1280, 1),
-        ("22683", "VGLJ", 3, "03:15", "03:23", 3, 1810, 3),
-        ("22683", "CNB",  4, "08:30", None,    3, 2030, 1)
+        # --- 22683 LKO YPR Return (YPR -> KLBG -> NGP -> VGLJ -> CNB) ---
+        ("22683", "YPR",  1, None, "15:45", 1, 0, 2),
+        ("22683", "KLBG", 2, "01:30", "01:35", 2, 610, 1),
+        ("22683", "NGP",  3, "12:00", "12:05", 2, 1270, 1),
+        ("22683", "VGLJ", 4, "20:15", "20:23", 2, 1800, 3),
+        ("22683", "CNB",  5, "01:30", None,    3, 2020, 1),
+
+        # --- 16535 Gol Gumbaz Express (MYS -> SBC -> YPR -> KLBG -> BJP) ---
+        ("16535", "MYS",  1, None, "15:45", 1, 0, 1),
+        ("16535", "SBC",  2, "18:15", "18:30", 1, 138, 5),
+        ("16535", "YPR",  3, "18:45", "18:50", 1, 148, 2),
+        ("16535", "KLBG", 4, "04:30", "04:35", 2, 668, 1),
+        ("16535", "BJP",  5, "08:30", None,    2, 835, 1),
+
+        # --- 16536 Gol Gumbaz Return (BJP -> KLBG -> YPR -> SBC -> MYS) ---
+        ("16536", "BJP",  1, None, "18:00", 1, 0, 1),
+        ("16536", "KLBG", 2, "21:50", "21:55", 1, 167, 2),
+        ("16536", "YPR",  3, "07:45", "07:50", 2, 687, 3),
+        ("16536", "SBC",  4, "08:15", "08:30", 2, 697, 4),
+        ("16536", "MYS",  5, "11:00", None,    2, 835, 1),
+
+        # --- 16589 Rani Chennamma Express (SBC -> YPR -> BGM) ---
+        ("16589", "SBC",  1, None, "23:00", 1, 0, 6),
+        ("16589", "YPR",  2, "23:15", "23:20", 1, 10, 3),
+        ("16589", "BGM",  3, "08:15", None,    2, 611, 1),
+
+        # --- 16590 Rani Chennamma Return (BGM -> YPR -> SBC) ---
+        ("16590", "BGM",  1, None, "18:50", 1, 0, 1),
+        ("16590", "YPR",  2, "04:15", "04:20", 2, 601, 1),
+        ("16590", "SBC",  3, "05:00", None,    2, 611, 7),
+
+        # --- 20607 Mysuru Vande Bharat (SBC -> MYS) ---
+        ("20607", "SBC",  1, None, "05:45", 1, 0, 7),
+        ("20607", "MYS",  2, "07:30", None,    1, 138, 1),
+
+        # --- 20608 Mysuru Vande Bharat Return (MYS -> SBC) ---
+        ("20608", "MYS",  1, None, "13:05", 1, 0, 1),
+        ("20608", "SBC",  2, "14:50", None,    1, 138, 7),
+
+        # --- 20653 Belagavi Vande Bharat (SBC -> YPR -> BGM) ---
+        ("20653", "SBC",  1, None, "05:45", 1, 0, 8),
+        ("20653", "YPR",  2, "05:58", "06:00", 1, 10, 1),
+        ("20653", "BGM",  3, "13:30", None,    1, 611, 1),
+
+        # --- 20654 Belagavi Vande Bharat Return (BGM -> YPR -> SBC) ---
+        ("20654", "BGM",  1, None, "14:00", 1, 0, 1),
+        ("20654", "YPR",  2, "21:30", "21:32", 1, 601, 2),
+        ("20654", "SBC",  3, "22:10", None,    1, 611, 8),
+
+        # --- 12253 SMVT Howrah SF (SMVB -> SBC -> SC -> HWH) ---
+        ("12253", "SMVB", 1, None, "13:50", 1, 0, 1),
+        ("12253", "SBC",  2, "14:15", "14:30", 1, 12, 4),
+        ("12253", "SC",   3, "03:30", "03:40", 2, 744, 1),
+        ("12253", "HWH",  4, "06:00", None,    3, 1950, 5),
+
+        # --- 12254 SMVT Howrah Return (HWH -> SC -> SBC -> SMVB) ---
+        ("12254", "HWH",  1, None, "22:55", 1, 0, 8),
+        ("12254", "SC",   2, "01:10", "01:20", 3, 1206, 2),
+        ("12254", "SBC",  3, "14:30", "14:45", 3, 1938, 2),
+        ("12254", "SMVB", 4, "15:15", None,    3, 1950, 1),
+
+        # --- 17307 Basava Express (MYS -> SBC -> YPR -> KLBG -> BJP) ---
+        ("17307", "MYS",  1, None, "13:25", 1, 0, 1),
+        ("17307", "SBC",  2, "16:30", "16:45", 1, 138, 6),
+        ("17307", "YPR",  3, "17:00", "17:05", 1, 148, 1),
+        ("17307", "KLBG", 4, "03:05", "03:10", 2, 668, 2),
+        ("17307", "BJP",  5, "06:40", None,    2, 835, 1),
+
+        # --- 17308 Basava Express Return (BJP -> KLBG -> YPR -> SBC -> MYS) ---
+        ("17308", "BJP",  1, None, "14:30", 1, 0, 2),
+        ("17308", "KLBG", 2, "18:15", "18:20", 1, 167, 1),
+        ("17308", "YPR",  3, "04:45", "04:50", 2, 687, 2),
+        ("17308", "SBC",  4, "05:30", "05:45", 2, 697, 3),
+        ("17308", "MYS",  5, "08:35", None,    2, 835, 1),
+
+        # --- 12650 Karnataka Sampark Kranti (NDLS -> VGLJ -> BPL -> BGM -> YPR -> SBC) ---
+        ("12650", "NDLS", 1, None, "06:25", 1, 0, 8),
+        ("12650", "VGLJ", 2, "11:20", "11:28", 1, 410, 2),
+        ("12650", "BPL",  3, "15:00", "15:10", 1, 701, 1),
+        ("12650", "BGM",  4, "11:00", "11:10", 2, 1750, 1),
+        ("12650", "YPR",  5, "19:00", "19:05", 2, 2351, 3),
+        ("12650", "SBC",  6, "19:30", None,    2, 2361, 2),
+
+        # --- 12649 Karnataka Sampark Kranti Return (SBC -> YPR -> BGM -> BPL -> VGLJ -> NDLS) ---
+        ("12649", "SBC",  1, None, "13:50", 1, 0, 6),
+        ("12649", "YPR",  2, "14:05", "14:10", 1, 10, 1),
+        ("12649", "BGM",  3, "22:00", "22:10", 1, 611, 2),
+        ("12649", "BPL",  4, "18:00", "18:10", 2, 1660, 2),
+        ("12649", "VGLJ", 5, "21:50", "21:58", 2, 1951, 1),
+        ("12649", "NDLS", 6, "03:00", None,    3, 2361, 3)
     ]
 
     cursor.executemany(
@@ -282,7 +402,7 @@ def seed_railway_database():
 
     conn.commit()
     conn.close()
-    print("Database re-seeded with complete bi-directional schedules.")
+    print("Database re-seeded with complete bi-directional schedules including Karnataka stations.")
 
 if __name__ == '__main__':
     seed_railway_database()
