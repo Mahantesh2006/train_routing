@@ -16,11 +16,11 @@ Visit: https://train-routing-two.vercel.app
 
 ### Live Dashboard Overview
 
-![RailConnect dashboard overview](static/readme-screenshot-dashboard.svg)
+![RailConnect dashboard overview](static/live-dashboard-screenshot.png)
 
 ### Delhi → Bangalore Route Search
 
-![Route search and results screenshot](static/readme-screenshot-routes.svg)
+![Route search and results screenshot](static/live-route-search-screenshot.png)
 
 ## ✨ What this project does
 
