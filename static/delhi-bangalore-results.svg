@@ -1,0 +1,23 @@
+<svg width="1400" height="900" viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="900" fill="#090D16"/>
+  <rect x="40" y="40" width="1320" height="820" rx="24" fill="#111827" stroke="#1F2937"/>
+  <rect x="80" y="90" width="1240" height="80" rx="16" fill="#0F172A" stroke="#1E293B"/>
+  <text x="120" y="136" fill="#F8FAFC" font-family="Segoe UI, Arial" font-size="30" font-weight="700">Route Results</text>
+  <text x="1050" y="136" fill="#0EA5E9" font-family="Segoe UI, Arial" font-size="20" font-weight="600">3 routes found</text>
+
+  <rect x="90" y="210" width="1220" height="200" rx="20" fill="#0F172A" stroke="#1E293B"/>
+  <rect x="120" y="235" width="170" height="34" rx="17" fill="#34D399"/>
+  <text x="145" y="257" fill="#052E16" font-size="15" font-weight="700">⚡ DIRECT TRAIN</text>
+  <text x="120" y="315" fill="#F8FAFC" font-size="24" font-weight="600">NDLS → SBC</text>
+  <text x="120" y="352" fill="#94A3B8" font-size="18">Duration: 24h 40m • Fare: ₹ 2,450 • Distance: 2,150 km</text>
+
+  <rect x="90" y="440" width="1220" height="250" rx="20" fill="#0F172A" stroke="#1E293B"/>
+  <rect x="120" y="465" width="220" height="34" rx="17" fill="#38BDF8"/>
+  <text x="145" y="487" fill="#082F49" font-size="15" font-weight="700">🔀 1-STOP CONNECTING</text>
+  <text x="120" y="545" fill="#F8FAFC" font-size="24" font-weight="600">NDLS → YPR → SBC</text>
+  <text x="120" y="580" fill="#94A3B8" font-size="18">Layover: 1h 10m at Yesvantpur Junction</text>
+  <text x="120" y="610" fill="#94A3B8" font-size="18">Suggested for better transfer flexibility</text>
+
+  <rect x="90" y="720" width="1220" height="90" rx="20" fill="#111827" stroke="#1F293B"/>
+  <text x="120" y="770" fill="#F8FAFC" font-size="22" font-weight="600">Live control-room view highlights signal conflicts and reroute options.</text>
+</svg>
