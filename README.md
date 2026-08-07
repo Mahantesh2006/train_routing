@@ -96,8 +96,20 @@ pytest test_routing.py
    - **Start Command**: `gunicorn -w 2 -k uvicorn.workers.UvicornWorker backend.app:app`
 4. Click **Create Web Service**.
 
-
 ---
+
+## ▲ Deploy on Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Mahantesh2006/train_routing)
+
+### Vercel Deployment Instructions:
+
+1. **Sign in** to [vercel.com](https://vercel.com/) with GitHub.
+2. Click **Add New...** $\rightarrow$ **Project**.
+3. Import `Mahantesh2006/train_routing`.
+4. Vercel automatically detects `vercel.json` and `@vercel/python` configuration.
+5. Click **Deploy**.
+
 
 ## 🤝 Contributing
 

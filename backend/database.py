@@ -1,7 +1,21 @@
 import sqlite3
 import os
+import shutil
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "railway.db")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO_DB_PATH = os.path.join(BASE_DIR, "railway.db")
+
+# In Vercel serverless environment, filesystem is read-only except /tmp
+if os.environ.get("VERCEL"):
+    TMP_DB_PATH = "/tmp/railway.db"
+    if not os.path.exists(TMP_DB_PATH) and os.path.exists(REPO_DB_PATH):
+        try:
+            shutil.copyfile(REPO_DB_PATH, TMP_DB_PATH)
+        except Exception as e:
+            print(f"Error copying DB to /tmp: {e}")
+    DB_PATH = TMP_DB_PATH if os.path.exists(TMP_DB_PATH) else REPO_DB_PATH
+else:
+    DB_PATH = REPO_DB_PATH
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -41,15 +55,14 @@ def init_db():
     ''')
 
     # Schedules / Stops Table
-    # day_number: 1 = start day, 2 = 2nd day of journey, 3 = 3rd day, etc.
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS schedules (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         train_no TEXT NOT NULL,
         station_code TEXT NOT NULL,
         stop_seq INTEGER NOT NULL,
-        arrival_time TEXT, -- HH:MM or NULL for origin
-        departure_time TEXT, -- HH:MM or NULL for terminal
+        arrival_time TEXT,
+        departure_time TEXT,
         day_number INTEGER NOT NULL DEFAULT 1,
         distance_km INTEGER NOT NULL DEFAULT 0,
         platform INTEGER DEFAULT 1,
