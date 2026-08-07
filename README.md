@@ -1,17 +1,23 @@
-# 🚆 RailConnect
+# 🚆 RailConnect // Real-Time Signal & Train Routing Control
 
-A smart railway route planner that helps users find direct and connecting train options with realistic transfer timing.
+A modern, high-performance railway route planning system and real-time signal control room dashboard built with Python (FastAPI), React 18, Tailwind CSS v4, and SQLite.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688?style=for-the-badge&logo=fastapi)
-![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css)
+![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 ---
 
 ## 📌 Overview
 
-RailConnect is a web-based train routing system that searches for both direct and indirect routes. It evaluates transfer stations, waiting time between trains, and route ranking to suggest practical travel plans.
+RailConnect is an end-to-end railway routing and telemetry control platform. It calculates direct and 1-stop connecting routes across 22 major Indian railway hubs while evaluating layover buffers ($\Delta t_{min} \le \Delta t \le \Delta t_{max}$), multi-day schedule offsets, and train operating matrix constraints.
+
+It features an **Obsidian Dark-Mode Real-Time Signal & Control Room Dashboard** with an interactive track schematic canvas, live junction switches, signal overlap conflict resolvers, and emergency overrides.
+
+🔗 **Live Vercel Deployment**: [https://train-routing-two.vercel.app](https://train-routing-two.vercel.app)
 
 ---
 
@@ -21,20 +27,22 @@ RailConnect is a web-based train routing system that searches for both direct an
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- **Real-Time Signal & Train Control Dashboard**: Obsidian dark-mode telemetry interface with interactive node schematic canvas, junction switches, and emergency overrides.
-- **Conflict Resolver**: Alert card identifying track signal overlaps with one-click rerouting and signal hold actions.
-- **Indirect & Direct Route Search**: Find direct and 1-stop connecting train routes across 22 major junctions including **Kalaburagi (Gulbarga)**, **Vijayapura (Bijapur)**, **Belagavi**, **Mysuru**, and **Bengaluru (KSR, Yesvantpur, SMVT)**.
-- **Transfer Layover Buffer Control**: Configurable transfer buffer windows ($\Delta t_{min}$ to $\Delta t_{max}$) with day-of-week operation validation.
-- **Multi-Criteria Ranking**: Sort options by fastest journey duration, shortest layover, lowest fare, or earliest arrival.
+- **Real-Time Signal & Control Room Dashboard**: Obsidian dark-mode (`#090D16`) dispatch interface with interactive track node schematics, live train velocity gauges, and signal block indicators.
+- **Conflict Resolver**: Active alert card detecting track signal overlaps with 1-click *Reroute via Track 2B* and *Hold Signal S-402* actions.
+- **Interactive Junction Switches**: Clickable junctions (`J-101` to `J-106`) with live state toggles (`OPEN`, `CLOSED`, `DIVERGING`).
+- **Karnataka Regional & National Expansion**: Full route coverage across 22 hubs including **Kalaburagi (Gulbarga)**, **Vijayapura (Bijapur)**, **Belagavi**, **Mysuru**, and **Bengaluru (KSR, Yesvantpur, SMVT)**.
+- **Transfer Layover Buffer Control**: Configurable transfer buffer windows with day-of-week validation.
+- **Multi-Criteria Ranking**: Rank routes by fastest total journey duration, shortest layover time, lowest fare, or earliest arrival.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 18, Tailwind CSS v4, Lucide Icons, Canvas & SVG Schematic
+- **Frontend**: React 18, Tailwind CSS v4, Pure SVG Inline Icons, Interactive Canvas & SVG Schematic
 - **Backend**: Python 3.10+, FastAPI, SQLite
+- **Deployment**: Vercel Serverless (`@vercel/python`, `vercel.json`, `/tmp` DB replication)
 - **Testing**: Pytest
 
 ---
@@ -43,24 +51,26 @@ RailConnect is a web-based train routing system that searches for both direct an
 
 ```text
 train_routing/
+├── api/
+│   └── index.py             # Vercel serverless function entrypoint
 ├── backend/
-│   ├── app.py
-│   ├── database.py
-│   ├── routing_engine.py
-│   └── seed_data.py
+│   ├── app.py               # FastAPI REST API server & routing endpoints
+│   ├── database.py          # SQLite connection pool & Vercel /tmp DB handler
+│   ├── routing_engine.py    # Core pathfinding & set-intersection search
+│   └── seed_data.py         # 22-station dataset & bi-directional schedules
 ├── static/
-│   ├── index.html
-│   ├── styles.css
-│   └── app.js
-├── test_routing.py
-├── requirements.txt
-├── run.py
+│   ├── index.html           # React 18 SPA Control Room & Planner UI
+│   └── styles.css           # Glassmorphism & control room theme utilities
+├── test_routing.py          # Pytest unit & integration test suite
+├── requirements.txt         # Dependencies
+├── vercel.json              # Vercel serverless configuration
+├── run.py                   # Local dev server runner
 └── README.md
 ```
 
 ---
 
-## ⚙️ Quick Start
+## ⚙️ Quick Start (Local Setup)
 
 ```bash
 git clone https://github.com/Mahantesh2006/train_routing.git
@@ -70,7 +80,7 @@ python backend/seed_data.py
 python run.py
 ```
 
-Then open: http://localhost:8000
+Then open: **http://localhost:8000**
 
 ---
 
@@ -82,40 +92,15 @@ pytest test_routing.py
 
 ---
 
-## 🚀 Deploy on Render
-
-[![Deploy to Render](https://render.com/images/deploy-to-render.svg)](https://render.com/deploy?repo=https://github.com/Mahantesh2006/train_routing)
-
-### Render Configuration Parameters:
-
-1. **Sign in** to [render.com](https://render.com/) with GitHub.
-2. Click **New +** $\rightarrow$ **Web Service** $\rightarrow$ Connect `Mahantesh2006/train_routing`.
-3. Set the parameters:
-   - **Environment**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt && python backend/seed_data.py`
-   - **Start Command**: `gunicorn -w 2 -k uvicorn.workers.UvicornWorker backend.app:app`
-4. Click **Create Web Service**.
-
----
-
 ## ▲ Deploy on Vercel
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Mahantesh2006/train_routing)
 
-### Vercel Deployment Instructions:
-
 1. **Sign in** to [vercel.com](https://vercel.com/) with GitHub.
 2. Click **Add New...** $\rightarrow$ **Project**.
-3. Import `Mahantesh2006/train_routing`.
+3. Import **`Mahantesh2006/train_routing`**.
 4. Vercel automatically detects `vercel.json` and `@vercel/python` configuration.
 5. Click **Deploy**.
-
-
-## 🤝 Contributing
-
-Contributions are welcome. Feel free to fork the repository and submit a pull request.
-
-5. Open a Pull Request.
 
 ---
 
@@ -125,7 +110,6 @@ This project is licensed under the MIT License.
 
 ---
 
-
 <p align="center">
-⭐ If you like this project, don't forget to star the repository!
+⭐ If you like this project, don't forget to star the repository on GitHub!
 </p>
