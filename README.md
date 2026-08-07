@@ -23,20 +23,19 @@ RailConnect is a web-based train routing system that searches for both direct an
 
 ## ✨ Features
 
-- Find direct and connecting train routes
-- Support layover buffer control for realistic transfers
-- Rank routes by fastest travel, shortest layover, lowest fare, or earliest arrival
-- Provide a modern dark-themed web interface with route visualization
+- **Real-Time Signal & Train Control Dashboard**: Obsidian dark-mode telemetry interface with interactive node schematic canvas, junction switches, and emergency overrides.
+- **Conflict Resolver**: Alert card identifying track signal overlaps with one-click rerouting and signal hold actions.
+- **Indirect & Direct Route Search**: Find direct and 1-stop connecting train routes across 22 major junctions including **Kalaburagi (Gulbarga)**, **Vijayapura (Bijapur)**, **Belagavi**, **Mysuru**, and **Bengaluru (KSR, Yesvantpur, SMVT)**.
+- **Transfer Layover Buffer Control**: Configurable transfer buffer windows ($\Delta t_{min}$ to $\Delta t_{max}$) with day-of-week operation validation.
+- **Multi-Criteria Ranking**: Sort options by fastest journey duration, shortest layover, lowest fare, or earliest arrival.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- Python
-- FastAPI
-- SQLite
-- HTML, CSS, JavaScript
-- Pytest
+- **Frontend**: React 18, Tailwind CSS v4, Lucide Icons, Canvas & SVG Schematic
+- **Backend**: Python 3.10+, FastAPI, SQLite
+- **Testing**: Pytest
 
 ---
 
