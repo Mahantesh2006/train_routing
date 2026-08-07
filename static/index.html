@@ -20,9 +20,6 @@
     
     <!-- Babel Standalone for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
 
     <link rel="stylesheet" href="/static/styles.css">
 </head>
@@ -32,23 +29,42 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // Helper to render Lucide SVG icon safely
-        const LucideIcon = ({ name, className = "w-5 h-5", ...props }) => {
-            const iconRef = useRef(null);
-
-            useEffect(() => {
-                if (iconRef.current && window.lucide && window.lucide.icons) {
-                    const iconPascal = name.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
-                    const iconFn = window.lucide.icons[iconPascal] || window.lucide.icons[name];
-                    if (iconFn) {
-                        const svg = iconFn.toSvg({ class: className, ...props });
-                        iconRef.current.innerHTML = svg;
-                    }
-                }
-            }, [name, className]);
-
-            return <span ref={iconRef} className="inline-flex items-center justify-center" />;
+        // Pure SVG Icon Map (Zero runtime CDN failures)
+        const ICON_PATHS = {
+            "radio": <g><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9c3.9 3.9 3.9 10.3 0 14.2"/></g>,
+            "zap": <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>,
+            "shield-alert": <g><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></g>,
+            "activity": <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>,
+            "clock": <g><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></g>,
+            "compass": <g><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></g>,
+            "train": <g><path d="M8 3.1 12 2l4 1.1"/><path d="M4 11V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5"/><path d="M4 11h16v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6Z"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/><path d="m9 19-3 3"/><path d="m15 19 3 3"/></g>,
+            "sliders": <g><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></g>,
+            "git-commit": <g><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="22.95" y2="12"/></g>,
+            "alert-triangle": <g><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></g>,
+            "check-circle-2": <g><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></g>,
+            "power": <g><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></g>,
+            "arrow-right": <g><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></g>,
+            "search": <g><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></g>,
+            "gauge": <g><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></g>,
+            "terminal": <g><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></g>,
+            "layers": <g><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></g>,
+            "play": <polygon points="5 3 19 12 5 21 5 3"/>,
+            "pause": <g><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></g>
         };
+
+        const LucideIcon = ({ name, className = "w-5 h-5" }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className}>
+                {ICON_PATHS[name] || <circle cx="12" cy="12" r="10" />}
+            </svg>
+        );
 
         // Train Telemetry Initial Data
         const INITIAL_TRAINS = [
@@ -62,7 +78,7 @@
             { id: "#TR-607", name: "Mysuru Vande Bharat", origin: "SBC", next: "MYS", speed: 125, targetSpeed: 130, status: "ON_TIME", delay: 0, signal: "S-601", track: "South Line", type: "Vande Bharat" }
         ];
 
-        // Station Node Coordinates on Network Canvas (normalized x: 50..950, y: 50..450)
+        // Station Node Coordinates on Network Canvas
         const STATIONS = {
             NDLS: { name: "New Delhi", code: "NDLS", x: 250, y: 70, type: "major" },
             VGLJ: { name: "Jhansi", code: "VGLJ", x: 340, y: 140, type: "junction" },
@@ -90,19 +106,16 @@
         ];
 
         function App() {
-            // Main View Mode: 'control' (Signal Control Dashboard) or 'planner' (Connecting Route Search)
             const [viewMode, setViewMode] = useState('control');
             const [emergencyOverride, setEmergencyOverride] = useState(false);
-            const [simSpeed, setSimSpeed] = useState(1); // 1x, 2x, 5x, 0 (Pause)
+            const [simSpeed, setSimSpeed] = useState(1);
             const [isPaused, setIsPaused] = useState(false);
             const [timeStr, setTimeStr] = useState("");
             
-            // Telemetry State
             const [trains, setTrains] = useState(INITIAL_TRAINS);
             const [searchQuery, setSearchQuery] = useState("");
             const [statusFilter, setStatusFilter] = useState("ALL");
 
-            // Junction Switch States
             const [junctions, setJunctions] = useState({
                 "J-101": { id: "J-101", code: "KLBG", name: "Kalaburagi Junction", status: "OPEN" },
                 "J-102": { id: "J-102", code: "YPR", name: "Yesvantpur Junction", status: "CONFLICT" },
@@ -112,7 +125,6 @@
                 "J-106": { id: "J-106", code: "BGM", name: "Belagavi Pass", status: "OPEN" }
             });
 
-            // Active Conflict State
             const [activeConflict, setActiveConflict] = useState({
                 id: "CONF-902",
                 junction: "J-102",
@@ -123,7 +135,6 @@
                 status: "ACTIVE"
             });
 
-            // Timetable Planner Form State (for Route Search view)
             const [plannerOrigin, setPlannerOrigin] = useState("NDLS");
             const [plannerDest, setPlannerDest] = useState("SBC");
             const [plannerDate, setPlannerDate] = useState("2026-07-27");
@@ -133,24 +144,23 @@
             const [routeResults, setRouteResults] = useState(null);
             const [loadingRoutes, setLoadingRoutes] = useState(false);
 
-            // Clock update
             useEffect(() => {
-                const timer = setInterval(() => {
+                const updateClock = () => {
                     const now = new Date();
                     const h = String(now.getHours()).padStart(2, '0');
                     const m = String(now.getMinutes()).padStart(2, '0');
                     const s = String(now.getSeconds()).padStart(2, '0');
                     setTimeStr(`${h}:${m}:${s} UTC+05:30`);
-                }, 1000);
+                };
+                updateClock();
+                const timer = setInterval(updateClock, 1000);
                 return () => clearInterval(timer);
             }, []);
 
-            // Emergency Override Toggle Action
             const handleEmergencyToggle = () => {
                 const nextState = !emergencyOverride;
                 setEmergencyOverride(nextState);
                 if (nextState) {
-                    // Put all train speeds to 0 and all signals to HOLD
                     setTrains(prev => prev.map(t => ({ ...t, speed: 0, status: "HOLD" })));
                     setJunctions(prev => {
                         const updated = {};
@@ -172,7 +182,6 @@
                 }
             };
 
-            // Reroute Action
             const handleReroute = () => {
                 setActiveConflict(null);
                 setJunctions(prev => ({
@@ -190,7 +199,6 @@
                 }));
             };
 
-            // Hold Signal Action
             const handleHoldSignal = () => {
                 setActiveConflict(null);
                 setJunctions(prev => ({
@@ -208,7 +216,6 @@
                 }));
             };
 
-            // Junction Toggle
             const toggleJunctionStatus = (jId) => {
                 setJunctions(prev => {
                     const curr = prev[jId].status;
@@ -220,7 +227,6 @@
                 });
             };
 
-            // Filter Trains
             const filteredTrains = useMemo(() => {
                 return trains.filter(t => {
                     const matchesQuery = t.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -231,7 +237,6 @@
                 });
             }, [trains, searchQuery, statusFilter]);
 
-            // Route Search submit
             const handleRouteSearch = async (e) => {
                 e.preventDefault();
                 setLoadingRoutes(true);
@@ -290,7 +295,6 @@
 
                             {/* Center System Status Badges */}
                             <div className="flex items-center gap-3 flex-wrap">
-                                {/* Health Pill */}
                                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-md ${
                                     emergencyOverride 
                                         ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 glow-coral' 
@@ -300,14 +304,12 @@
                                     <span>{emergencyOverride ? 'EMERGENCY OVERRIDE' : 'ALL SYSTEMS OPERATIONAL'}</span>
                                 </div>
 
-                                {/* Active Trains Count */}
                                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono bg-slate-900/80 border border-slate-800 text-slate-300">
                                     <LucideIcon name="train" className="w-3.5 h-3.5 text-cyan-400" />
                                     <span>ACTIVE UNITS: <strong className="text-cyan-400">{trains.length}</strong> / 18</span>
                                 </div>
 
-                                {/* Live Clock */}
-                                <div className="flex items-center gap-2 px-3 me-2 py-1.5 rounded-full text-xs font-mono bg-slate-900/80 border border-slate-800 text-slate-300">
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono bg-slate-900/80 border border-slate-800 text-slate-300">
                                     <LucideIcon name="clock" className="w-3.5 h-3.5 text-slate-400" />
                                     <span className="text-slate-200">{timeStr || '12:00:00 UTC+05:30'}</span>
                                 </div>
@@ -315,7 +317,6 @@
 
                             {/* View Switcher & Emergency Button */}
                             <div className="flex items-center gap-3">
-                                {/* Mode Switch Buttons */}
                                 <div className="bg-slate-900/90 border border-slate-800 p-1 rounded-xl flex gap-1">
                                     <button 
                                         onClick={() => setViewMode('control')}
@@ -340,7 +341,6 @@
                                     </button>
                                 </div>
 
-                                {/* Emergency Override Button */}
                                 <button 
                                     onClick={handleEmergencyToggle}
                                     className={`px-3 py-2 rounded-xl text-xs font-bold font-mono tracking-wider flex items-center gap-2 transition-all ${
@@ -362,14 +362,12 @@
                         {/* VIEW MODE 1: REAL-TIME SIGNAL CONTROL DASHBOARD */}
                         {viewMode === 'control' && (
                             <>
-                                {/* TOP WORKSPACE GRID (Left 65% Network Schematic, Right 35% Live Telemetry) */}
                                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                                     {/* LEFT 65% PANEL: RAIL NETWORK SCHEMATIC */}
                                     <div className="lg:col-span-8 flex flex-col gap-4">
                                         <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-5 shadow-xl shadow-black/40 flex flex-col gap-4">
                                             
-                                            {/* Panel Header */}
                                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
                                                 <div>
                                                     <h2 className="font-heading font-bold text-base text-slate-100 flex items-center gap-2">
@@ -379,7 +377,6 @@
                                                     <p className="text-xs text-slate-400">Node-based signal blocks, real-time train positions, and junction switch indicators</p>
                                                 </div>
 
-                                                {/* Map Controls */}
                                                 <div className="flex items-center gap-2 bg-slate-950/80 px-2 py-1 rounded-lg border border-slate-800 text-xs">
                                                     <button 
                                                         onClick={() => setIsPaused(!isPaused)} 
@@ -403,23 +400,17 @@
 
                                             {/* SVG TRACK SCHEMATIC BOARD */}
                                             <div className="relative w-full h-[460px] bg-slate-950/90 rounded-xl border border-slate-800/80 overflow-hidden shadow-inner flex items-center justify-center">
-                                                
-                                                {/* Grid Overlay Effect */}
                                                 <div className="absolute inset-0 bg-[radial-gradient(#1E293B_1px,transparent_1px)] [background-size:20px_20px] opacity-40 pointer-events-none"></div>
 
                                                 <svg viewBox="0 0 1000 520" className="w-full h-full relative z-10">
-                                                    
-                                                    {/* Track Edges */}
                                                     {TRACK_EDGES.map(([src, dst], idx) => {
                                                         const p1 = STATIONS[src];
                                                         const p2 = STATIONS[dst];
                                                         if (!p1 || !p2) return null;
-                                                        
                                                         const isConflictEdge = (src === "YPR" || dst === "YPR") && activeConflict;
 
                                                         return (
                                                             <g key={idx}>
-                                                                {/* Background Track Line */}
                                                                 <line 
                                                                     x1={p1.x} y1={p1.y} 
                                                                     x2={p2.x} y2={p2.y} 
@@ -428,8 +419,6 @@
                                                                     strokeDasharray={isConflictEdge ? "6 6" : "none"}
                                                                     className={isConflictEdge ? "animate-pulse" : ""}
                                                                 />
-
-                                                                {/* Active Glow Track overlay */}
                                                                 <line 
                                                                     x1={p1.x} y1={p1.y} 
                                                                     x2={p2.x} y2={p2.y} 
@@ -441,14 +430,12 @@
                                                         );
                                                     })}
 
-                                                    {/* Station Nodes */}
                                                     {Object.entries(STATIONS).map(([code, st]) => {
                                                         const isKarnataka = st.type === "karnataka";
                                                         const isMajor = st.type === "major";
 
                                                         return (
                                                             <g key={code} transform={`translate(${st.x}, ${st.y})`} className="cursor-pointer group">
-                                                                {/* Glowing Aura Ring */}
                                                                 <circle 
                                                                     r={isMajor ? 12 : 8} 
                                                                     fill="none" 
@@ -457,14 +444,11 @@
                                                                     strokeOpacity={0.5} 
                                                                     className="group-hover:scale-125 transition-transform"
                                                                 />
-                                                                {/* Core Circle */}
                                                                 <circle 
                                                                     r={isMajor ? 7 : 5} 
                                                                     fill={isKarnataka ? "#06B6D4" : "#10B981"} 
                                                                     className="shadow-lg shadow-cyan-500"
                                                                 />
-                                                                
-                                                                {/* Station Code Label */}
                                                                 <text 
                                                                     x={14} y={4} 
                                                                     fill="#F8FAFC" 
@@ -473,8 +457,6 @@
                                                                     fontFamily="JetBrains Mono, monospace">
                                                                     {st.code}
                                                                 </text>
-
-                                                                {/* Station Full Name hover hint */}
                                                                 <text 
                                                                     x={14} y={16} 
                                                                     fill="#94A3B8" 
@@ -486,9 +468,7 @@
                                                         );
                                                     })}
 
-                                                    {/* Moving Train Dots with animated pulse */}
                                                     {trains.map((t, i) => {
-                                                        // Plot train near its next target station
                                                         const targetSt = STATIONS[t.next] || STATIONS["SBC"];
                                                         const offsetAngle = (i * (360 / trains.length)) * (Math.PI / 180);
                                                         const tx = targetSt.x - 30 * Math.cos(offsetAngle);
@@ -498,7 +478,6 @@
 
                                                         return (
                                                             <g key={t.id} transform={`translate(${tx}, ${ty})`}>
-                                                                {/* Pulse Ring */}
                                                                 <circle 
                                                                     r={14} 
                                                                     fill="none" 
@@ -506,15 +485,12 @@
                                                                     strokeWidth={1.5} 
                                                                     className="animate-ping opacity-75"
                                                                 />
-                                                                {/* Train Dot */}
                                                                 <circle 
                                                                     r={7} 
                                                                     fill={isConflicted ? "#FF4D4D" : isHold ? "#F59E0B" : "#06B6D4"} 
                                                                     stroke="#090D16" 
                                                                     strokeWidth={2}
                                                                 />
-
-                                                                {/* Train ID Tag */}
                                                                 <rect 
                                                                     x={10} y={-12} 
                                                                     width={68} height={18} 
@@ -536,7 +512,6 @@
                                                     })}
                                                 </svg>
 
-                                                {/* MAP LEGEND OVERLAY */}
                                                 <div className="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-md border border-slate-800 px-3 py-2 rounded-xl text-[11px] flex items-center gap-4 text-slate-300">
                                                     <div className="flex items-center gap-1.5">
                                                         <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400"></span>
@@ -565,7 +540,6 @@
                                                         const isConflict = j.status === "CONFLICT";
                                                         const isOpen = j.status === "OPEN";
                                                         const isDiverged = j.status === "DIVERGED" || j.status === "DIVERGING";
-                                                        const isHold = j.status === "HOLD" || j.status === "CLOSED";
 
                                                         return (
                                                             <button 
@@ -650,7 +624,6 @@
                                     {/* RIGHT 35% PANEL: LIVE TELEMETRY & CONFLICT RESOLVER */}
                                     <div className="lg:col-span-4 flex flex-col gap-4">
                                         
-                                        {/* CONFLICT RESOLVER WIDGET */}
                                         {activeConflict ? (
                                             <div className="bg-rose-950/40 backdrop-blur-md border border-rose-500/60 rounded-2xl p-4 shadow-xl shadow-rose-950/40 flex flex-col gap-3 relative overflow-hidden emergency-flash">
                                                 <div className="flex items-center justify-between">
@@ -667,7 +640,6 @@
                                                     {activeConflict.description}
                                                 </p>
 
-                                                {/* CONFLICT ACTION BUTTONS */}
                                                 <div className="grid grid-cols-2 gap-2 pt-1">
                                                     <button 
                                                         onClick={handleReroute}
@@ -694,10 +666,7 @@
                                             </div>
                                         )}
 
-                                        {/* TRAIN TELEMETRY PANEL CARD */}
                                         <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-xl shadow-black/40 flex flex-col gap-3 flex-1">
-                                            
-                                            {/* Panel Title & Filters */}
                                             <div className="flex flex-col gap-2 border-b border-slate-800 pb-3">
                                                 <div className="flex items-center justify-between">
                                                     <h3 className="font-heading font-bold text-sm text-slate-100 flex items-center gap-2">
@@ -707,7 +676,6 @@
                                                     <span className="text-xs font-mono text-slate-400">{filteredTrains.length} Units</span>
                                                 </div>
 
-                                                {/* Search & Status Filter */}
                                                 <div className="flex items-center gap-2">
                                                     <div className="relative flex-1">
                                                         <input 
@@ -733,7 +701,6 @@
                                                 </div>
                                             </div>
 
-                                            {/* LIVE TRAIN CARDS LIST */}
                                             <div className="flex flex-col gap-2.5 overflow-y-auto max-h-[420px] pr-1">
                                                 {filteredTrains.map((t) => {
                                                     const isConflict = t.status === "CONFLICT";
@@ -750,8 +717,6 @@
                                                                         ? 'bg-amber-500/10 border-amber-500/40' 
                                                                         : 'bg-slate-950/60 border-slate-800/80 hover:bg-slate-900/60'
                                                             }`}>
-                                                            
-                                                            {/* Card Top: ID & Status Badge */}
                                                             <div className="flex items-center justify-between">
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="font-mono font-bold text-xs text-cyan-400">{t.id}</span>
@@ -771,7 +736,6 @@
                                                                 </span>
                                                             </div>
 
-                                                            {/* Card Telemetry Metrics */}
                                                             <div className="grid grid-cols-3 gap-2 text-[11px] bg-slate-900/80 p-2 rounded-lg border border-slate-800/60">
                                                                 <div>
                                                                     <div className="text-[9px] font-mono text-slate-500">SPEED</div>
@@ -789,7 +753,6 @@
                                                                 </div>
                                                             </div>
 
-                                                            {/* Speed Visual Gauge Progress */}
                                                             <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
                                                                 <div 
                                                                     className={`h-full rounded-full transition-all duration-500 ${isConflict ? 'bg-rose-500' : isHold ? 'bg-amber-500' : 'bg-cyan-400'}`} 
@@ -807,10 +770,7 @@
 
                                 </div>
 
-                                {/* BOTTOM BAR: QUICK KPI METRICS CARDS */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    
-                                    {/* KPI 1: Average Network Delay */}
                                     <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-lg flex items-center justify-between">
                                         <div>
                                             <div className="text-xs font-mono text-slate-400 uppercase tracking-wider">Average Delay</div>
@@ -824,7 +784,6 @@
                                         </div>
                                     </div>
 
-                                    {/* KPI 2: Mean Network Speed */}
                                     <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-lg flex items-center justify-between">
                                         <div>
                                             <div className="text-xs font-mono text-slate-400 uppercase tracking-wider">Mean Network Speed</div>
@@ -836,7 +795,6 @@
                                         </div>
                                     </div>
 
-                                    {/* KPI 3: Track Capacity Utilization */}
                                     <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-lg flex items-center justify-between">
                                         <div>
                                             <div className="text-xs font-mono text-slate-400 uppercase tracking-wider">Track Capacity %</div>
@@ -848,7 +806,6 @@
                                         </div>
                                     </div>
 
-                                    {/* KPI 4: Active Signal Switches */}
                                     <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-4 shadow-lg flex items-center justify-between">
                                         <div>
                                             <div className="text-xs font-mono text-slate-400 uppercase tracking-wider">Signal Switches</div>
@@ -859,16 +816,12 @@
                                             <LucideIcon name="sliders" className="w-5 h-5" />
                                         </div>
                                     </div>
-
                                 </div>
                             </>
                         )}
 
-                        {/* VIEW MODE 2: JOURNEY CONNECTING ROUTE PLANNER */}
                         {viewMode === 'planner' && (
                             <div className="flex flex-col gap-6">
-                                
-                                {/* Search Constraints Form */}
                                 <div className="bg-slate-900/60 backdrop-blur-md border border-slate-800/80 rounded-2xl p-6 shadow-xl">
                                     <h2 className="font-heading font-bold text-lg text-slate-100 mb-1 flex items-center gap-2">
                                         <LucideIcon name="compass" className="w-5 h-5 text-cyan-400" />
@@ -956,7 +909,6 @@
                                     </form>
                                 </div>
 
-                                {/* Results View */}
                                 {routeResults && (
                                     <div className="flex flex-col gap-4">
                                         <div className="grid grid-cols-3 gap-4">
@@ -1015,7 +967,6 @@
 
                     </main>
 
-                    {/* FOOTER */}
                     <footer className="border-t border-slate-800/80 py-4 text-center text-xs text-slate-500 font-mono">
                         RailConnect // Dark Mode Real-Time Train Routing & Signal Control Dashboard &copy; 2026
                     </footer>
@@ -1024,7 +975,12 @@
             );
         }
 
-        ReactDOM.render(<App />, document.getElementById('root'));
+        const rootNode = document.getElementById('root');
+        if (ReactDOM.createRoot) {
+            ReactDOM.createRoot(rootNode).render(<App />);
+        } else {
+            ReactDOM.render(<App />, rootNode);
+        }
     </script>
 </body>
 </html>
