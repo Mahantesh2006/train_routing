@@ -1,33 +1,47 @@
 <svg width="1600" height="1000" viewBox="0 0 1600 1000" xmlns="http://www.w3.org/2000/svg">
   <rect width="1600" height="1000" fill="#090D16"/>
-  <rect x="30" y="30" width="1540" height="940" rx="28" fill="#0F172A" stroke="#1E293B"/>
-  <rect x="70" y="80" width="1460" height="80" rx="18" fill="#0B1220" stroke="#1E293B"/>
-  <text x="110" y="128" fill="#F8FAFC" font-family="Segoe UI, Arial" font-size="28" font-weight="700">RAILCONNECT CONTROL ROOM</text>
-  <text x="110" y="153" fill="#94A3B8" font-size="16">Live routing card with transfer layover and signal status details</text>
+  <rect x="26" y="26" width="1548" height="948" rx="28" fill="#0F172A" stroke="#1E293B"/>
+
+  <rect x="60" y="70" width="1480" height="92" rx="20" fill="#060B14" stroke="#243244"/>
+  <circle cx="105" cy="116" r="24" fill="#19B6FF"/>
+  <circle cx="105" cy="116" r="11" fill="#F8FAFC"/>
+  <text x="150" y="108" fill="#F8FAFC" font-family="Segoe UI, Arial" font-size="30" font-weight="700">RAILCONNECT</text>
+  <text x="150" y="138" fill="#94A3B8" font-size="16">Control room route details with transfer and signal decision cards</text>
 
   <rect x="90" y="210" width="1420" height="680" rx="24" fill="#111827" stroke="#1F293B"/>
-  <rect x="120" y="250" width="1160" height="110" rx="18" fill="#0B1220" stroke="#334155"/>
-  <rect x="145" y="275" width="220" height="32" rx="16" fill="#38BDF8"/>
-  <text x="175" y="296" fill="#082F49" font-size="15" font-weight="700">🔀 1-STOP CONNECTING</text>
-  <text x="145" y="330" fill="#F8FAFC" font-size="24" font-weight="600">NDLS → YPR → SBC</text>
-  <text x="145" y="358" fill="#94A3B8" font-size="16">Total duration: 26h 10m • Approx. fare: ₹ 2,980</text>
+  <rect x="120" y="245" width="980" height="120" rx="18" fill="#0B1220" stroke="#334155"/>
+  <rect x="145" y="270" width="240" height="32" rx="16" fill="#38BDF8"/>
+  <text x="175" y="291" fill="#082F49" font-size="15" font-weight="700">🔀 1-STOP CONNECTING</text>
+  <text x="145" y="325" fill="#F8FAFC" font-size="24" font-weight="600">NDLS → YPR → SBC</text>
+  <text x="145" y="353" fill="#94A3B8" font-size="16">Total duration: 26h 10m • Approx. fare: ₹ 2,980</text>
 
-  <rect x="120" y="390" width="1160" height="250" rx="18" fill="#0F172A" stroke="#334155"/>
-  <text x="145" y="430" fill="#F8FAFC" font-size="20" font-weight="700">Leg 1</text>
-  <text x="145" y="460" fill="#94A3B8" font-size="16">New Delhi (NDLS) → Yesvantpur (YPR)</text>
-  <text x="145" y="488" fill="#94A3B8" font-size="16">Train #12345 • Karnataka SF • 1,600 km</text>
-  <text x="145" y="520" fill="#94A3B8" font-size="16">Departure 21:10 • Arrival 06:40</text>
+  <rect x="1130" y="245" width="360" height="200" rx="18" fill="#0B1220" stroke="#334155"/>
+  <text x="1160" y="284" fill="#F8FAFC" font-size="22" font-weight="700">Signal Actions</text>
+  <rect x="1160" y="305" width="200" height="26" rx="13" fill="#F43F5E"/>
+  <text x="1178" y="322" fill="#FFF" font-size="13" font-weight="700">CONFLICT DETECTED</text>
+  <text x="1160" y="360" fill="#94A3B8" font-size="16">Junction J-102 • Track 2B</text>
+  <rect x="1160" y="388" width="150" height="34" rx="17" fill="#111827" stroke="#334155"/>
+  <text x="1192" y="409" fill="#F8FAFC" font-size="15">Reroute</text>
+  <rect x="1325" y="388" width="130" height="34" rx="17" fill="#111827" stroke="#334155"/>
+  <text x="1350" y="409" fill="#F8FAFC" font-size="15">Hold</text>
 
-  <rect x="145" y="545" width="420" height="58" rx="14" fill="#111827" stroke="#334155"/>
-  <text x="170" y="582" fill="#F8FAFC" font-size="18">⏳ 1h 10m layover at Yesvantpur Junction</text>
+  <rect x="120" y="395" width="980" height="360" rx="18" fill="#0B1220" stroke="#334155"/>
+  <text x="150" y="435" fill="#F8FAFC" font-size="20" font-weight="700">Leg 1</text>
+  <text x="150" y="468" fill="#94A3B8" font-size="16">New Delhi (NDLS) → Yesvantpur (YPR)</text>
+  <text x="150" y="497" fill="#94A3B8" font-size="16">Train #12345 • Karnataka SF • 1,600 km</text>
+  <text x="150" y="526" fill="#94A3B8" font-size="16">Departs 21:10 • Arrives 06:40</text>
 
-  <text x="145" y="640" fill="#F8FAFC" font-size="20" font-weight="700">Leg 2</text>
-  <text x="145" y="670" fill="#94A3B8" font-size="16">Yesvantpur (YPR) → Bengaluru (SBC)</text>
-  <text x="145" y="698" fill="#94A3B8" font-size="16">Train #54321 • Bengaluru Express • 160 km</text>
+  <rect x="150" y="550" width="440" height="64" rx="14" fill="#111827" stroke="#334155"/>
+  <text x="175" y="587" fill="#F8FAFC" font-size="18">⏳ 1h 10m layover at Yesvantpur Junction</text>
 
-  <rect x="1310" y="250" width="180" height="220" rx="18" fill="#0B1220" stroke="#334155"/>
-  <text x="1340" y="290" fill="#F8FAFC" font-size="20" font-weight="700">Signals</text>
-  <text x="1340" y="332" fill="#F43F5E" font-size="16" font-weight="600">Conflict detected</text>
-  <text x="1340" y="362" fill="#94A3B8" font-size="16">Track 2B</text>
-  <text x="1340" y="392" fill="#94A3B8" font-size="16">Hold / Reroute</text>
+  <text x="150" y="650" fill="#F8FAFC" font-size="20" font-weight="700">Leg 2</text>
+  <text x="150" y="682" fill="#94A3B8" font-size="16">Yesvantpur (YPR) → Bengaluru (SBC)</text>
+  <text x="150" y="710" fill="#94A3B8" font-size="16">Train #54321 • Bengaluru Express • 160 km</text>
+
+  <rect x="1130" y="475" width="360" height="280" rx="18" fill="#0B1220" stroke="#334155"/>
+  <text x="1160" y="516" fill="#F8FAFC" font-size="22" font-weight="700">Junction Switches</text>
+  <text x="1160" y="556" fill="#94A3B8" font-size="16">J-101 • OPEN</text>
+  <text x="1160" y="586" fill="#94A3B8" font-size="16">J-102 • CONFLICT</text>
+  <text x="1160" y="616" fill="#94A3B8" font-size="16">J-103 • DIVERGING</text>
+  <text x="1160" y="646" fill="#94A3B8" font-size="16">Live state updates are shown in real time</text>
 </svg>
